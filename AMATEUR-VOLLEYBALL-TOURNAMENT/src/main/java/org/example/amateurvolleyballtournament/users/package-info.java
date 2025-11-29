@@ -1,1 +1,2 @@
+@org.springframework.modulith.ApplicationModule
 package org.example.amateurvolleyballtournament.users;
