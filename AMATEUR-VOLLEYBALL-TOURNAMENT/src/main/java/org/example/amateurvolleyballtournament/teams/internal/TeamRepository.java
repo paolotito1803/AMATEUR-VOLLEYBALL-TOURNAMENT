@@ -14,4 +14,7 @@ interface TeamRepository extends JpaRepository<TeamEntity, String> {
 
     // SELECT * FROM teams WHERE stadium_name = ?
     Optional<TeamEntity> findByStadium_StadiumName(String stadiumName);
+
+    boolean existsByCoachId(String coachId);
+    boolean existsByName(String name);
 }

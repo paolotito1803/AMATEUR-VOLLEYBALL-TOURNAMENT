@@ -5,4 +5,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UsersServiceImpl implements UsersService {
+    @Override
+    public boolean isCoach(String userId) {
+        return true;
+    }
 }

@@ -16,12 +16,12 @@ public interface TeamService {
     void changeCoach(String oldCoachId, String newCoachId, String newCoachName);
     void updateStadium(String coachId, StadiumDTO stadium);
     void addPlayer(String coachId, PlayerDTO player);
-    void updatePlayer(String coachId, int playerNumber, PlayerDTO updatedDetails);
+    void updatePlayer(String coachId, int currentNumber, PlayerDTO updatedDetails);
     void removePlayer(String coachId, int playerNumber);
 
     // SYSTEM QUERIES FOR OTHER MODULES
     List<TeamDTO> getAllTeams();
     Optional<StadiumDTO> getStadiumByTeamId(String teamId);
-    StadiumDTO getStadiumByName(String name);
-    TeamDTO getTeam(String teamId);
+    Optional<StadiumDTO> getStadiumByName(String name);
+    Optional<TeamDTO> getTeam(String teamId);
 }
