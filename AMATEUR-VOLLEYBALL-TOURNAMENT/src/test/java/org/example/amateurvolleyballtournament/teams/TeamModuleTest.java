@@ -9,6 +9,8 @@ import org.springframework.modulith.test.ApplicationModuleTest;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 // This annotation automatically isolates the 'teams' module
@@ -40,6 +42,88 @@ class TeamModuleTest {
 
         assertThat(myTeam.name()).isEqualTo(uniqueTeamName);
         assertThat(myTeam.coachName()).isEqualTo("Test Coach Name");
+    }
+
+    @Test
+    void shouldAddPlayerToTeam() {
+        // 1. Setup Team
+        String coachId = "coach_" + UUID.randomUUID();
+        createTeamForCoach(coachId);
+
+        // 2. Add Player
+        PlayerDTO newPlayer = new PlayerDTO("Michael Jordan", 23, VolleyballRole.PLAYER);
+        teamService.addPlayer(coachId, newPlayer);
+
+        // 3. Verify
+        TeamDTO team = getTeamByCoach(coachId);
+        assertThat(team.players()).hasSize(1);
+        assertThat(team.players().getFirst().name()).isEqualTo("Michael Jordan");
+    }
+
+    @Test
+    void shouldRejectRegistrationIfUserIsNotCoach() {
+        String randomUserId = "user_" + UUID.randomUUID();
+
+        // Mock: The user service says "False, this guy is not a coach"
+        when(usersService.isCoach(randomUserId)).thenReturn(false);
+
+        // Assert that calling the method throws the expected exception
+        assertThatThrownBy(() ->
+                teamService.registerTeam(randomUserId, "Imposter", "Fake Team")
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not authorized");
+    }
+
+    @Test
+    void shouldRejectDuplicateTeamNames() {
+        String coach1 = "coach_A_" + UUID.randomUUID();
+        String coach2 = "coach_B_" + UUID.randomUUID();
+        String sharedTeamName = "The Unique Team";
+
+        // Both are valid coaches
+        when(usersService.isCoach(anyString())).thenReturn(true);
+
+        // Coach 1 takes the name
+        teamService.registerTeam(coach1, "Coach A", sharedTeamName);
+
+        // Coach 2 tries to take the same name -> Should Fail
+        assertThatThrownBy(() ->
+                teamService.registerTeam(coach2, "Coach B", sharedTeamName)
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("already taken");
+    }
+
+    @Test
+    void shouldRejectDuplicatePlayerNumbers() {
+        // 1. Setup Team
+        String coachId = "coach_" + UUID.randomUUID();
+        createTeamForCoach(coachId);
+
+        // 2. Add Player #10
+        teamService.addPlayer(coachId, new PlayerDTO("Player One", 10, VolleyballRole.SETTER));
+
+        // 3. Try to add another Player #10 -> Should Fail
+        assertThatThrownBy(() ->
+                teamService.addPlayer(coachId, new PlayerDTO("Player Two", 10, VolleyballRole.LIBERO))
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("number 10 is already taken");
+    }
+
+    // HELPER METHODS
+
+    private void createTeamForCoach(String coachId) {
+        when(usersService.isCoach(coachId)).thenReturn(true);
+        teamService.registerTeam(coachId, "Test Coach", "Team " + coachId);
+    }
+
+    private TeamDTO getTeamByCoach(String coachId) {
+        return teamService.getAllTeams().stream()
+                .filter(t -> t.coachId().equals(coachId))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Team not found for test"));
     }
 }
 
