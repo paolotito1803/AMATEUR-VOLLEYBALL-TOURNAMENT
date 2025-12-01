@@ -21,6 +21,11 @@ class TeamPersistence {
     }
 
     @Transactional
+    public void deleteAll() {
+        repo.deleteAll(); // JpaRepository method: DELETE FROM teams;
+    }
+
+    @Transactional
     public void deletePlayer(String coachId, int playerNumber) {
         TeamEntity team = getByCoachIdOrThrow(coachId);
 

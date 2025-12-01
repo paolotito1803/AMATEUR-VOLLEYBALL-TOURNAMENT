@@ -196,6 +196,11 @@ class TeamServiceImpl implements TeamService {
                 .map(this::toDTO);
     }
 
+    @Override
+    public void deleteAllTeams() {
+        db.deleteAll();
+    }
+
     // Converts Internal Entity -> Public DTO
     private TeamDTO toDTO(TeamEntity entity) {
         // Handle Null Stadium safely

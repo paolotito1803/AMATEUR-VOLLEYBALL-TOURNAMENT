@@ -24,4 +24,7 @@ public interface TeamService {
     Optional<StadiumDTO> getStadiumByTeamId(String teamId);
     Optional<StadiumDTO> getStadiumByName(String name);
     Optional<TeamDTO> getTeam(String teamId);
+
+    // DEV TOOLS
+    void deleteAllTeams();
 }

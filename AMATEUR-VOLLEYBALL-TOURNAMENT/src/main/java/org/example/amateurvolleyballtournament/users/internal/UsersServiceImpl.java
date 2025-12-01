@@ -9,4 +9,9 @@ public class UsersServiceImpl implements UsersService {
     public boolean isCoach(String userId) {
         return true;
     }
+
+    @Override
+    public boolean isAdmin(String userId) {
+        return true;
+    }
 }
