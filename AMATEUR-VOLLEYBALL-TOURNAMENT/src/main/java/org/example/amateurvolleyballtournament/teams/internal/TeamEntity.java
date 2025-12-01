@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity // JPA: This is a table
-@Table(name = "teams")
+@Table(name = "teams", schema = "teams_module")
 @Data // Lombok to Generates getters, setters, toString
 @NoArgsConstructor
 class TeamEntity {

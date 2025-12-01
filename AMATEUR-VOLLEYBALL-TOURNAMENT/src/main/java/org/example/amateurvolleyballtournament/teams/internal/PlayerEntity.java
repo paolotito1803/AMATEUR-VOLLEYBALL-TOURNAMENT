@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import org.example.amateurvolleyballtournament.teams.VolleyballRole;
 
 @Entity // JPA: This is a table
-@Table(name = "players")
+@Table(name = "players", schema = "teams_module")
 @Data // Lombok to Generates getters, setters, toString
 @NoArgsConstructor
 class PlayerEntity {
