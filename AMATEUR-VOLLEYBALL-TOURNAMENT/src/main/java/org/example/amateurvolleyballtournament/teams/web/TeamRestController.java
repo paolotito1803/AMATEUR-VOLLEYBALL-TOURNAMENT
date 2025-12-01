@@ -40,12 +40,10 @@ class TeamRestController {
     public ResponseEntity<String> registerTeam(@RequestParam String coachId,
                                                @RequestParam String coachName,
                                                @RequestParam String teamName) {
-        try {
-            teamService.registerTeam(coachId, coachName, teamName);
-            return ResponseEntity.ok("Team registered successfully");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        // If this throws an exception, the GlobalExceptionHandler catches it
+        teamService.registerTeam(coachId, coachName, teamName);
+
+        return ResponseEntity.ok("Team registered successfully");
     }
 
     // DEV TOOLS
