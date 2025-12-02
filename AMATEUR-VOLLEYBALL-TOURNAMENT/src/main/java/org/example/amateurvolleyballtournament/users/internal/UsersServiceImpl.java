@@ -46,14 +46,6 @@ public class UsersServiceImpl implements UsersService {
             }
         }
         return roles;
-
-       List<UserDTO> roles = new ArrayList<>();
-       for(UserDTO user: users){
-           if(user.role().equals(role)) {
-               roles.add(user);
-           }
-       }
-       return roles;
     }
 
     @Override
