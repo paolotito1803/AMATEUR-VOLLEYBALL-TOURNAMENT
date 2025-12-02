@@ -3,15 +3,25 @@ package org.example.amateurvolleyballtournament.users;
 import java.util.List;
 
 public interface UsersService {
-    void registerUsers(UserDTO users);
+    // Creazione nuovo utente
+    void createUser(InputUserDTO user);
 
-    void updateUsers(String id, UserDTO users);
+    // Aggiornamento utente esistente
+    void updateUser(String id, UserDTO user);
 
-    void deleteUsers(String id);
 
-    List<UserDTO> getUsersByRole(String role);
+    // Lista utenti filtrata per ruolo
+    List<UserDTO> listUsersByRole(String role);
 
-    List<UserDTO> exportUsers(String Role);
+    // Assegna team a un utente (coach/referee)
+    void assignTeamsToUser(String userId,String teamName);
 
-    void assignTeamToUsers(String userId, String teamName);
+    // Disattiva utente (flag)
+    void deactivateUser(String id);
+
+    // Lista tutti gli utenti
+    List<UserDTO> getAllUsers();
+
+    // Export utenti filtrati per ruolo (può essere JSON, CSV o lista)
+    List<UserDTO> exportUsersByRole(String role);
 }
