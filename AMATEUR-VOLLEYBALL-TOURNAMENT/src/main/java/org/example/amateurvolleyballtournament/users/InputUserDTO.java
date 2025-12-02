@@ -7,3 +7,4 @@ public record InputUserDTO(String id,
                            String email,
                            String role,
                            String teamName) {}
+

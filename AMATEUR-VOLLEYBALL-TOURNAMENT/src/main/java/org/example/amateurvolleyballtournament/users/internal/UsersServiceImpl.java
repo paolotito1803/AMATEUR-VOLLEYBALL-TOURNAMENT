@@ -11,8 +11,10 @@ import java.util.UUID;
 
 @Service
 public class UsersServiceImpl implements UsersService {
+
     private final ArrayList<UserDTO> users = new ArrayList<>();
     private final ArrayList<String> pwd = new ArrayList<>();
+
 
 
     @Override
@@ -44,12 +46,21 @@ public class UsersServiceImpl implements UsersService {
             }
         }
         return roles;
+
+       List<UserDTO> roles = new ArrayList<>();
+       for(UserDTO user: users){
+           if(user.role().equals(role)) {
+               roles.add(user);
+           }
+       }
+       return roles;
     }
 
     @Override
     public void assignTeamsToUser(String userId, String teamName) {
+
         //chiedere se da fare
-    }
+}
 
     @Override
     public void deactivateUser(String id) {
@@ -72,6 +83,7 @@ public class UsersServiceImpl implements UsersService {
         return listUsersByRole(role);
     }
 
+
     @Override
     public Boolean isCoach(String userId) {
         return users.stream()
@@ -91,3 +103,4 @@ public class UsersServiceImpl implements UsersService {
     }
 
 }
+

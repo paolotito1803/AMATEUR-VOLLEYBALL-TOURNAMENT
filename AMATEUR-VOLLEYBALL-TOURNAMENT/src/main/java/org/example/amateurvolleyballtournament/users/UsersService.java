@@ -28,4 +28,5 @@ public interface UsersService {
     Boolean isCoach(String uniqueCoachId);
 
     boolean isAdmin(String userId);
+
 }
