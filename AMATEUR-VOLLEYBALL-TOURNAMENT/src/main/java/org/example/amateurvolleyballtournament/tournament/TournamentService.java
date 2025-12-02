@@ -2,25 +2,43 @@ package org.example.amateurvolleyballtournament.tournament;
 
 public interface TournamentService {
 
+    /* TODO: capire se specificare unicamente i match per le modifiche o le assegnazioni o se inserire anche
+        l'id del torneo per questioni di ricerca */
+
     // Tournament creation
     // void createTournament(TournamentDTO tournamentDTO);
 
-    // Update tournament date
-    // void updateTournamentDate(String tournamentId, Date newDate);
+    // Groups creation
+    // For implementation: assign a new group list to a tournament
+    // void createTournamentGroups(TournamentDTO tournament, List<GroupDTO> groupList);
 
-    // Update Team List. Also update groups
-    // void updateTournamentTeams(List<TeamDTO> newTeamList);
+    // Edit tournament name
+    // void editTournamentName(TournamentDTO tournament, String newName);
+
+    // Edit tournament match
+    // For implementation: edit a specific group in the group list of a tournament
+    // void editTournamentMatch(TournamentDTO tournament, MatchDTO match);
+
+    // Update tournament match
+    // void updateTournamentMatch(TournamentDTO tournament, List<MatchDTO> matchUpdateList);
+
+    // Update match date
+    // void updateMatchDate(MatchDTO match, Date newDate);
+
+    // Update Team List. Also update matches (linked to the tournament's teams)
+    // void updateTournamentTeams(TournamentDTO tournament, List<TeamDTO> newTeamList);
 
     // Assign referee
-    // void assignTournamentReferee(String tournamentId, String referee);
+    // void assignMatchReferee(MatchDTO match, String referee);
 
     // Export tournament information
-    // void exportTournamentInformation(String tournamentId);
+    // For implementation: search for the match by id OR replace parameter with a TournamentDTO
+    // void exportTournamentInformation(TournamentDTO tournament);
 
     // Update results
     // For implementation: list of groups with edited scores, position ecc... to update in tournament's group list
-    // void updateTournamentResults(List<GroupsDTO> editedScores);
+    // void updateTournamentResults(TournamentDTO tournament, List<MatchDTO> editedScores);
 
     // Assign Stadium
-    // void assignTournamentStadium(String tournamentId, String stadium);
+    // void assignMatchStadium(MatchDTO match, String stadium);
 }
