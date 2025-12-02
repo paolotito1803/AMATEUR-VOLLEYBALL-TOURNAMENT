@@ -24,4 +24,8 @@ public interface UsersService {
 
     // Export utenti filtrati per ruolo (può essere JSON, CSV o lista)
     List<UserDTO> exportUsersByRole(String role);
+
+    Boolean isCoach(String uniqueCoachId);
+
+    boolean isAdmin(String userId);
 }

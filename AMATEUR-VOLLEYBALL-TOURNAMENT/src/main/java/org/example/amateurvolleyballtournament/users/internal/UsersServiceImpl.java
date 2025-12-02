@@ -71,4 +71,23 @@ public class UsersServiceImpl implements UsersService {
     public List<UserDTO> exportUsersByRole(String role) {
         return listUsersByRole(role);
     }
+
+    @Override
+    public Boolean isCoach(String userId) {
+        return users.stream()
+                .anyMatch(u ->
+                        u.id().equals(userId) &&
+                                u.role().equalsIgnoreCase("COACH")
+                );
+    }
+
+    @Override
+    public boolean isAdmin(String userId) {
+        return users.stream()
+                .anyMatch(u ->
+                        u.id().equals(userId) &&
+                                u.role().equalsIgnoreCase("ADMIN")
+                );
+    }
+
 }
