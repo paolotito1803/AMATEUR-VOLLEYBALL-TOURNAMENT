@@ -49,12 +49,6 @@ public class UsersServiceImpl implements UsersService {
     }
 
     @Override
-    public void assignTeamsToUser(String userId, String teamName) {
-
-        //chiedere se da fare
-}
-
-    @Override
     public void deactivateUser(String id) {
         for(int i = 0; i < users.size(); i++) {
             UserDTO user = users.get(i);
@@ -75,7 +69,6 @@ public class UsersServiceImpl implements UsersService {
         return listUsersByRole(role);
     }
 
-
     @Override
     public Boolean isCoach(String userId) {
         return users.stream()
@@ -94,5 +87,22 @@ public class UsersServiceImpl implements UsersService {
                 );
     }
 
+    @Override
+    public String getCoach(String id) throws Exception {
+        String name = "";
+        String surname = "";
+        String coach_name = "";
+        for(int i = 0; i < users.size(); i++) {
+            if(users.get(i).id().equals(id) && users.get(i).role().equals("COACH")) {
+                name = users.get(i).username();
+                surname = users.get(i).surname();
+                coach_name = name + " " + surname;
+            }
+            else{
+                throw  new Exception("Unauthorized coach");
+            }
+        }
+        return coach_name;
+    }
 }
 
