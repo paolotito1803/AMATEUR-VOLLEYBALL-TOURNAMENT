@@ -13,9 +13,6 @@ public interface UsersService {
     // Lista utenti filtrata per ruolo
     List<UserDTO> listUsersByRole(String role);
 
-    // Assegna team a un utente (coach/referee)
-    void assignTeamsToUser(String userId,String teamName);
-
     // Disattiva utente (flag)
     void deactivateUser(String id);
 
@@ -24,4 +21,7 @@ public interface UsersService {
 
     // Export utenti filtrati per ruolo (può essere JSON, CSV o lista)
     List<UserDTO> exportUsersByRole(String role);
+
+    //Ritorno nome e cognome del coach
+    String getCoach(String id) throws Exception;
 }
