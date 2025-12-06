@@ -1,12 +1,14 @@
 package org.example.amateurvolleyballtournament.tournament;
 
+import java.util.List;
+
 public interface TournamentService {
 
     /* TODO: capire se specificare unicamente i match per le modifiche o le assegnazioni o se inserire anche
         l'id del torneo per questioni di ricerca */
 
     // Tournament creation
-    // void createTournament(TournamentDTO tournamentDTO);
+    List<TournamentDTO> getTournaments();
 
     // Groups creation
     // For implementation: assign a new group list to a tournament
