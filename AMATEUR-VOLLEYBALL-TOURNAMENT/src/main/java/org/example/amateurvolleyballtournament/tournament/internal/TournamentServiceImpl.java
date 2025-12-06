@@ -1,11 +1,23 @@
 package org.example.amateurvolleyballtournament.tournament.internal;
 
+import org.example.amateurvolleyballtournament.teams.TeamService;
 import org.example.amateurvolleyballtournament.tournament.TournamentDTO;
 import org.example.amateurvolleyballtournament.tournament.TournamentService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
+
 @Service
 class TournamentServiceImpl implements TournamentService {
-    public void createTournament(TournamentDTO tournamentDTO) {
+    private final TeamService teamService;
+
+    public TournamentServiceImpl(TeamService teamService) {
+        this.teamService = teamService;
+    }
+
+    @Override
+    public List<TournamentDTO> getTournaments() {
+        return List.of();
     }
 }
