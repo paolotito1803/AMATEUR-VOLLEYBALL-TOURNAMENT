@@ -45,7 +45,6 @@
                         <th>Surname</th>
                         <th>Email</th>
                         <th>Role</th>
-                        <th>Status</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -54,7 +53,6 @@
                         <td th:text="${user.surname()}">Surname</td>
                         <td th:text="${user.email()}">Email</td>
                         <td th:text="${user.role()}">Role</td>
-                        <td th:text="${user.status() != null ? user.status() : 'ACTIVE'}">Status</td>
                     </tr>
                     </tbody>
                 </table>

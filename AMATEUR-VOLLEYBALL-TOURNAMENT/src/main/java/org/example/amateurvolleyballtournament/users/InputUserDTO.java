@@ -5,6 +5,5 @@ public record InputUserDTO(String id,
                            String surname,
                            String password,
                            String email,
-                           String role,
-                           String teamName) {}
+                           String role) {}
 

@@ -1,4 +1,4 @@
 package org.example.amateurvolleyballtournament.users;
 
 public record LoginDTO(String token,
-                       UserDTO userDTO) {}
+                       UserDTO user) {}

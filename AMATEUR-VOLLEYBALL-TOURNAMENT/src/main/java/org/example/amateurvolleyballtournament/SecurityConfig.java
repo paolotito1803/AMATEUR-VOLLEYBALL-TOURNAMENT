@@ -18,14 +18,18 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // Questa configurazione DISABILITA il login di default di Spring
-    // così puoi gestire tu il login custom nel tuo Controller/Service
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Disabilita CSRF (per le chiamate Postman)
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll() // Permette TUTTE le richieste senza login automatico di Spring
+                        // anyone chan do login or registration
+                        .requestMatchers("/api/users/login", "/api/users/create", "/api/users/seed").permitAll()
+                        // TUTTO IL RESTO RICHIEDE AUTENTICAZIONE (Se vuoi bloccarlo)
+                        // .anyRequest().authenticated()
+                        // PER ORA TUTTO APERTO PER TESTARE:
+                        .anyRequest().permitAll()
                 );
         return http.build();
     }
