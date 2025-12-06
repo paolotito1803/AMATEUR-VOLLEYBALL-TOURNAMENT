@@ -9,6 +9,9 @@ public interface UsersService {
     // Aggiornamento utente esistente
     void updateUser(String id, UserDTO user);
 
+    //login
+    LoginDTO login(String email, String password) throws Exception;
+
 
     // Lista utenti filtrata per ruolo
     List<UserDTO> listUsersByRole(String role);
