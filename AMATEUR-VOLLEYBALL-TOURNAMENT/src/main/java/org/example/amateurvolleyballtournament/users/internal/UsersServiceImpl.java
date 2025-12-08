@@ -10,12 +10,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UsersServiceImpl implements UsersService {
-
-    private final ArrayList<UserDTO> users = new ArrayList<>();
-    private final ArrayList<String> pwd = new ArrayList<>();
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -29,22 +27,29 @@ public class UsersServiceImpl implements UsersService {
 
     @Override
     public void createUser(InputUserDTO user) {
-        String id = UUID.randomUUID().toString();
+        String encryptedPwd = passwordEncoder.encode(user.password());
 
-        UserDTO newuser = new UserDTO(id, user.surname(), user.surname(), user.email(), user.role());
-        users.add(newuser);
-
-        pwd.add(user.password()); //password saved in clear
+        //new Entity into the db
+        UserEntity userEntity = new UserEntity(UUID.randomUUID().toString(),
+                user.username(),
+                user.surname(),
+                encryptedPwd,
+                user.email(),
+                user.role(),
+                true);
+        //db save
+        userRepository.save(userEntity);
     }
 
     @Override
     public void updateUser(String id, UserDTO user) {
-        for(int i = 0; i < users.size(); i++) {
-            if(users.get(i).id().equals(id)) {
-                users.set(i, user);
-                return;
-            }
-        }
+        userRepository.findById(id).ifPresent(userEntity -> {
+            userEntity.setUsername(user.username());
+            userEntity.setSurname(user.surname());
+            userEntity.setEmail(user.email());
+            userEntity.setRole(user.role());
+            userRepository.save(userEntity);//db update
+            });
     }
 
     @Override
@@ -78,29 +83,40 @@ public class UsersServiceImpl implements UsersService {
 
     @Override
     public List<UserDTO> listUsersByRole(String role) {
-        List<UserDTO> roles = new ArrayList<>();
-        for(UserDTO user: users){
-            if(user.role().equals(role)) {
-                roles.add(user);
-            }
-        }
-        return roles;
+        //convert data from the db to a DTO
+        return userRepository.findByRole(role).stream()
+                .map(entity -> new UserDTO(
+                        entity.getId(),
+                        entity.getUsername(),
+                        entity.getSurname(),
+                        entity.getEmail(),
+                        entity.getRole()
+                ))
+                .collect(Collectors.toList());
     }
 
     @Override
     public void deactivateUser(String id) {
-        for(int i = 0; i < users.size(); i++) {
-            UserDTO user = users.get(i);
-            if(user.id().equals(id)) {
-                users.set(i, new UserDTO(user.id(), user.username(), user.surname(), user.email(), "Inactive"));
-            }
-        }
-        return;
+        userRepository.findById(id).ifPresent(entity -> {
+            entity.setActive(false);
+            userRepository.save(entity);
+        });
     }
 
     @Override
     public List<UserDTO> getAllUsers() {
-        return users;
+        // Prende tutti dal DB e li converte in DTO
+        return userRepository.findAll().stream()
+                // Opzionale: filtrare quelli inattivi
+                // .filter(UserEntity::isActive)
+                .map(entity -> new UserDTO(
+                        entity.getId(),
+                        entity.getUsername(),
+                        entity.getSurname(),
+                        entity.getEmail(),
+                        entity.getRole()
+                ))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -110,38 +126,28 @@ public class UsersServiceImpl implements UsersService {
 
     @Override
     public Boolean isCoach(String userId) {
-        return users.stream()
-                .anyMatch(u ->
-                        u.id().equals(userId) &&
-                                u.role().equalsIgnoreCase("COACH")
-                );
+        return userRepository.findById(userId)
+                .map(u -> u.isActive() && "COACH".equalsIgnoreCase(u.getRole()))
+                .orElse(false);
     }
 
     @Override
     public boolean isAdmin(String userId) {
-        return users.stream()
-                .anyMatch(u ->
-                        u.id().equals(userId) &&
-                                u.role().equalsIgnoreCase("ADMIN")
-                );
+        return userRepository.findById(userId)
+                .map(u -> u.isActive() && "ADMIN".equalsIgnoreCase(u.getRole()))
+                .orElse(false);
     }
 
     @Override
     public String getCoach(String id) throws Exception {
-        String name = "";
-        String surname = "";
-        String coach_name = "";
-        for(int i = 0; i < users.size(); i++) {
-            if(users.get(i).id().equals(id) && users.get(i).role().equals("COACH")) {
-                name = users.get(i).username();
-                surname = users.get(i).surname();
-                coach_name = name + " " + surname;
-            }
-            else{
-                throw  new Exception("Unauthorized coach");
-            }
+        UserEntity user = userRepository.findById(id)
+                .orElseThrow(() -> new Exception("User not found"));
+
+        if ("COACH".equalsIgnoreCase(user.getRole())) {
+            return user.getUsername() + " " + user.getSurname();
+        } else {
+            throw new Exception("Unauthorized: User is not a coach");
         }
-        return coach_name;
     }
 }
 
