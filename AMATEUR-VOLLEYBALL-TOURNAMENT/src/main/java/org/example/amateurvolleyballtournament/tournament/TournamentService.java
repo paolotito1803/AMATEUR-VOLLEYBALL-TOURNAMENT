@@ -8,7 +8,7 @@ public interface TournamentService {
         l'id del torneo per questioni di ricerca */
 
     // Tournament creation
-    List<TournamentDTO> getTournaments();
+    List<TournamentDTO> getAllTournaments();
 
     // Groups creation
     // For implementation: assign a new group list to a tournament

@@ -5,14 +5,14 @@ import org.springframework.stereotype.Repository;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+
 @Repository
+interface TournamentRepository extends JpaRepository<TournamentEntity, String> {
 
-public interface TournamentRepository extends JpaRepository<TournamentEntity, String> {
-
-    Optional<TournamentEntity> findByTournamentName(String tournamentName);
-
-    Optional<TournamentEntity> findByMatchId(int matchId);
-
-    boolean existsByMatchDate(Date matchDate);
-    boolean existsByMatchId(int matchId);
+//    Optional<TournamentEntity> findByTournamentName(String tournamentName);
+//
+//    Optional<TournamentEntity> findByMatchId(int matchId);
+//
+//    boolean existsByMatchDate(Date matchDate);
+//    boolean existsByMatchId(int matchId);
 }

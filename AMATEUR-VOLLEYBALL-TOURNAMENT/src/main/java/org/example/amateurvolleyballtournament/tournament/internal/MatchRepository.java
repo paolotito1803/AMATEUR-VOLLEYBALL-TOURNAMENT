@@ -12,16 +12,16 @@ public interface MatchRepository extends JpaRepository<MatchEntity, String> {
     // TODO: non so se può essere utile. Nel caso va fatto un refactoring di Entity e DTO per inserirlo
     // List<MatchEntity> findByTournamentName(String tournamentName);
 
-    Optional<MatchEntity> findbyStadiumName(String stadiumName);
-
-    Optional<MatchEntity> findbyMatchDate(Date matchDate);
-
-    Optional<MatchEntity> findbyMatchId(int matchId);
-
-    Optional<MatchEntity> findbyMatchReferee(String referee);
-
-    boolean existsByStadiumName(String stadiumName);
-    boolean existsByMatchDate(Date matchDate);
-    boolean existsByMatchId(int matchId);
-    boolean existsByMatchReferee(String referee);
+//    Optional<MatchEntity> findbyStadiumName(String stadiumName);
+//
+//    Optional<MatchEntity> findbyMatchDate(Date matchDate);
+//
+//    Optional<MatchEntity> findbyMatchId(int matchId);
+//
+//    Optional<MatchEntity> findbyMatchReferee(String referee);
+//
+//    boolean existsByStadiumName(String stadiumName);
+//    boolean existsByMatchDate(Date matchDate);
+//    boolean existsByMatchId(int matchId);
+//    boolean existsByMatchReferee(String referee);
 }
