@@ -16,7 +16,7 @@ public class TicketEntity {
     private int numSeat;
 
     private String match;
-    private int user_id;
+    private String user_id;
 
     /*@Enumerated(EnumType.STRING) // JPA: Save the ENUM as text ("")
     private TipologySeat seatType;*/
@@ -28,7 +28,7 @@ public class TicketEntity {
     @JoinColumn();
     private MatchEntity match;*/
 
-    public TicketEntity(int numSeat, String match, int user_id) {
+    public TicketEntity(int numSeat, String match, String user_id) {
         this.id = UUID.randomUUID().toString();
         this.numSeat = numSeat;
         this.match = match;
