@@ -8,14 +8,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional
 class TicketServiceImpl implements TicketService {
-    private TicketPersistance db;
+    private TicketPersistence db;
 
-    TicketServiceImpl(TicketPersistance db) {
+    TicketServiceImpl(TicketPersistence db) {
         this.db = db;
     }
 
@@ -38,7 +37,12 @@ class TicketServiceImpl implements TicketService {
         return db.findTicketByMatchId(match).size();
     }
 
+    @Override
+    public void deleteAllTickets(){
+        db.deleteAll();
+    }
+
     private TicketDTO toDTO(TicketEntity entity) {
-        return new TicketDTO(entity.getId(), entity.getNumSeat(), entity.getMatch(), entity.getUser_id());
+        return new TicketDTO(entity.getId(), entity.getNumSeat(), entity.getMatch(), entity.getUserId());
     }
 }

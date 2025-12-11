@@ -9,4 +9,6 @@ public interface TicketService {
     List<TicketDTO> getAllTicketsByUserId(String userId);
 
     int availableSeats(String match);
+
+    void deleteAllTickets();
 }
