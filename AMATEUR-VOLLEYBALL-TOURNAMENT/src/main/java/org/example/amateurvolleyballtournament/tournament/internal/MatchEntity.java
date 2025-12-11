@@ -23,9 +23,10 @@ public class MatchEntity {
     *   @Embedded
     *   private StadiumEmbeddable stadium;
     */
+    private String tournament;
     private String stadium;
     private int freeSeats;
-    private Date matchDate;
+    private String matchDate;
     private String referee;
     private int position;
     private int stage;
@@ -33,9 +34,12 @@ public class MatchEntity {
     private int scoreB;
     //private MatchEntity nextMatch;
 
-    public MatchEntity(String stadium, int freeSeats) {
+    public MatchEntity(String tournament, String stadium, int freeSeats, String referee, String matchDate) {
         this.matchId = UUID.randomUUID().toString();
+        this.tournament = tournament;
         this.stadium = stadium;
         this.freeSeats = freeSeats;
+        this.matchDate  = matchDate;
+        this.referee = referee;
     }
 }
