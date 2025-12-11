@@ -1,5 +1,9 @@
 package org.example.amateurvolleyballtournament.tournament;
 
+import org.example.amateurvolleyballtournament.teams.TeamDTO;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.Date;
 import java.util.List;
 
 public interface TournamentService {
@@ -9,6 +13,20 @@ public interface TournamentService {
 
     // Tournament creation
     List<TournamentDTO> getAllTournaments();
+
+    void updateTeams(String adminId, List<String> teams, String tournamentId);
+
+    void updateMatchReferee(String adminId, String matchId, String newReferee);
+
+    void updateMatchDate(String adminId, String matchId, String newDate);
+
+    void updateMatchFreeSeats(String adminId, String matchId, int newFreeSeats);
+
+    List<TeamDTO> getTeams();
+
+    String getMatchReferee(String matchId);
+
+    String getMatchDate(String matchId);
 
     // Groups creation
     // For implementation: assign a new group list to a tournament
