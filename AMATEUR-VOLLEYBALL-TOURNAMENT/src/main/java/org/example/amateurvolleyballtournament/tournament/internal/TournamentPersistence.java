@@ -42,6 +42,18 @@ class TournamentPersistence {
         return Optional.ofNullable(matchEntity.getMatchDate());
     }
 
+    public Optional<String> getNextMatch(String matchId) {
+        MatchEntity matchEntity = matchRepository.findById(matchId).orElseThrow(() -> new RuntimeException("Match with id " +  matchId + " not found"));
+
+        return Optional.ofNullable(matchEntity.getNextMatchId());
+    }
+
+    public Optional<String> getMatchWinner(String matchId) {
+        MatchEntity matchEntity = matchRepository.findById(matchId).orElseThrow(() -> new RuntimeException("Match with id " + matchId + " not found"));
+
+        return Optional.ofNullable(matchEntity.getWinner());
+    }
+
     public Optional<TournamentEntity> updateTeams(List<String> teamsId, String tournamentId) {
         TournamentEntity tournamentEntity = tournamentRepository.findById(tournamentId).orElseThrow(() -> new RuntimeException("Tournament with id " + tournamentId + " not found"));
         tournamentEntity.setTeams(teams);

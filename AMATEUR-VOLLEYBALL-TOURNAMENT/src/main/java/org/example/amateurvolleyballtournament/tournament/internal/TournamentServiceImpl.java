@@ -2,13 +2,13 @@ package org.example.amateurvolleyballtournament.tournament.internal;
 
 import org.example.amateurvolleyballtournament.teams.TeamDTO;
 import org.example.amateurvolleyballtournament.teams.TeamService;
+import org.example.amateurvolleyballtournament.tournament.MatchDTO;
 import org.example.amateurvolleyballtournament.tournament.TournamentDTO;
 import org.example.amateurvolleyballtournament.tournament.TournamentService;
 import org.example.amateurvolleyballtournament.users.UsersService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,6 +48,52 @@ class TournamentServiceImpl implements TournamentService {
         }
 
         return tournamentPersistence.getMatchDate(matchId).orElseThrow(()   -> new IllegalStateException("Date for match " + matchId + " does not exist"));
+    }
+
+    @Override
+    public Optional<MatchDTO> getMatchInformation(String matchId) {
+        return getMatchDTO(matchId);
+    }
+
+    @Override
+    public String getMatchWinner(String matchId) {
+        if(!tournamentPersistence.existsByMatchId(matchId)) {
+            throw new IllegalStateException("Match with id " + matchId + " does not exist");
+        }
+
+        return tournamentPersistence.getMatchWinner(matchId).orElseThrow(()  -> new IllegalStateException("Winner for match " + matchId + " does not exist"));
+    }
+
+    @Override
+    public Optional<MatchDTO> getNextMatch(String matchId) {
+        if(!tournamentPersistence.existsByMatchId(matchId)) {
+            throw new IllegalStateException("Match with id " + matchId + " does not exist");
+        }
+
+        String nextMatchId = tournamentPersistence.getNextMatch(matchId).orElseThrow(()  -> new IllegalStateException("Next match for match " + matchId + " does not exist"));
+
+        return getMatchDTO(nextMatchId);
+    }
+
+    private Optional<MatchDTO> getMatchDTO(String nextMatchId) {
+        if(!tournamentPersistence.existsByMatchId(nextMatchId)) {
+            throw new IllegalStateException("Match with id " + nextMatchId + " does not exist");
+        }
+
+        return tournamentPersistence.findMatch(nextMatchId).map(s -> new MatchDTO(s.getMatchId(), s.getStadium(), s.getFreeSeats(), s.getMatchDate(), s.getReferee(),
+                s.getPosition(), s.getStage(), s.getTeamA(), s.getTeamB(), s.getScoreA(), s.getScoreB(), s.getWinner(), s.getNextMatchId()));
+    }
+
+    // Check parameters for creation, fetch matches and teams and manage first stage of tournament
+    @Override
+    public void createTournament(String adminId, String tournamentName, List<String> matches, List<String> teams) {
+        // TODO
+    }
+
+    // Generate a match: assign team A, team B, stadium, free seats, date ...
+    @Override
+    public void createMatch(String adminId, String stadium, int freeSeats, String matchDate, String referee, int position, int stage, String teamA, String teamB) {
+        //TODO
     }
 
     @Override

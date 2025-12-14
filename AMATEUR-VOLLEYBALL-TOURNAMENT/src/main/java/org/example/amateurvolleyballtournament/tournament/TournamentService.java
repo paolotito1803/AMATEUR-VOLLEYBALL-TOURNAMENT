@@ -1,10 +1,9 @@
 package org.example.amateurvolleyballtournament.tournament;
 
 import org.example.amateurvolleyballtournament.teams.TeamDTO;
-import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 public interface TournamentService {
 
@@ -28,6 +27,18 @@ public interface TournamentService {
 
     String getMatchDate(String matchId);
 
+    Optional<MatchDTO> getMatchInformation(String matchId);
+
+    String getMatchWinner(String matchId);
+
+    Optional<MatchDTO> getNextMatch(String matchId);
+
+    // Check parameters for creation, fetch matches and teams and manage first stage of tournament
+    void createTournament(String adminId, String tournamentName, List<String> matches, List<String> teams);
+
+    // Generate a match: assign team A, team B, stadium, free seats, date ...
+    void createMatch(String adminId, String stadium, int freeSeats, String matchDate, String referee, int position, int stage, String teamA, String teamB);
+
     // Groups creation
     // For implementation: assign a new group list to a tournament
     // void createTournamentGroups(TournamentDTO tournament, List<GroupDTO> groupList);
@@ -42,15 +53,6 @@ public interface TournamentService {
     // Update tournament match
     // void updateTournamentMatch(TournamentDTO tournament, List<MatchDTO> matchUpdateList);
 
-    // Update match date
-    // void updateMatchDate(MatchDTO match, Date newDate);
-
-    // Update Team List. Also update matches (linked to the tournament's teams)
-    // void updateTournamentTeams(TournamentDTO tournament, List<TeamDTO> newTeamList);
-
-    // Assign referee
-    // void assignMatchReferee(MatchDTO match, String referee);
-
     // Export tournament information
     // For implementation: search for the match by id OR replace parameter with a TournamentDTO
     // void exportTournamentInformation(TournamentDTO tournament);
@@ -58,7 +60,4 @@ public interface TournamentService {
     // Update results
     // For implementation: list of groups with edited scores, position ecc... to update in tournament's group list
     // void updateTournamentResults(TournamentDTO tournament, List<MatchDTO> editedScores);
-
-    // Assign Stadium
-    // void assignMatchStadium(MatchDTO match, String stadium);
 }
