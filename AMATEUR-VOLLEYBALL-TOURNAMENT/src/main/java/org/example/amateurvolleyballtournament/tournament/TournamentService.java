@@ -37,7 +37,7 @@ public interface TournamentService {
     void createTournament(String adminId, String tournamentName, int maxTournamentTeams, List<String> teams);
 
     // Generate a match: assign team A, team B, stadium, free seats, date ...
-    void createMatch(String adminId, String torunamentId, int position, int stage, String teamA, String teamB);
+    void createMatch(String adminId, String torunamentId, int stage, String teamA, String teamB);
 
     // Groups creation
     // For implementation: assign a new group list to a tournament

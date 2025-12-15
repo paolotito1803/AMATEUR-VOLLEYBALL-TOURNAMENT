@@ -81,14 +81,14 @@ class TournamentServiceImpl implements TournamentService {
         }
 
         return tournamentPersistence.findMatch(nextMatchId).map(s -> new MatchDTO(s.getMatchId(), s.getStadium(), s.getFreeSeats(), s.getMatchDate(), s.getReferee(),
-                s.getPosition(), s.getStage(), s.getTeamA(), s.getTeamB(), s.getScoreA(), s.getScoreB(), s.getWinner(), s.getNextMatchId()));
+                s.getStage(), s.getTeamA(), s.getTeamB(), s.getScoreA(), s.getScoreB(), s.getWinner(), s.getNextMatchId()));
     }
 
     // Check parameters for creation, fetch matches and teams and manage first stage of tournament
     @Override
     public void createTournament(String adminId, String tournamentName, int maxTournamentTeams, List<String> teams) {
         if(!usersService.isAdmin(adminId)) {
-            throw new IllegalArgumentException("User" + adminId + " is not authorized to update the teams of the tournament.");
+            throw new IllegalArgumentException("User" + adminId + " is not authorized to create a tournament.");
         }
 
         if(teams.size() != maxTournamentTeams) {
@@ -99,17 +99,27 @@ class TournamentServiceImpl implements TournamentService {
         * Shuffles the teams
         * Split in n matches
         * Create the matches by assigning the teams
+        * Assign stadium to match (return matchid upon creation)
+        * Get stadium free seats and assign
+        * Assign referee
         */
+
+        String tournamentId = tournamentPersistence.getTournamentIdByName(tournamentName)
+                .orElseThrow(() -> new RuntimeException("Id for tournament name " + tournamentName + " not found."));
+
+        for(int i = 0; i < teams.size(); i += 2) {
+            createMatch(adminId, tournamentId, 1, teams.get(i), teams.get(i + 1));
+        }
     }
 
     // Generate a match: assign team A, team B
     @Override
-    public void createMatch(String adminId, String tournamentId, int position, int stage, String teamA, String teamB) {
+    public void createMatch(String adminId, String tournamentId, int stage, String teamA, String teamB) {
         if(!usersService.isAdmin(adminId)) {
-            throw new IllegalArgumentException("User" + adminId + " is not authorized to update the teams of the tournament.");
+            throw new IllegalArgumentException("User" + adminId + " is not authorized to create matches for the tournament.");
         }
 
-        tournamentPersistence.createMatch(tournamentId, position, stage, teamA, teamB);
+        tournamentPersistence.createMatch(tournamentId, stage, teamA, teamB);
     }
 
     @Override
