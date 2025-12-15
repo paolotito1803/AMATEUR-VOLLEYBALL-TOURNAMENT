@@ -39,10 +39,6 @@ public interface TournamentService {
     // Generate a match: assign team A, team B, stadium, free seats, date ...
     void createMatch(String adminId, String torunamentId, int stage, String teamA, String teamB);
 
-    // Groups creation
-    // For implementation: assign a new group list to a tournament
-    // void createTournamentGroups(TournamentDTO tournament, List<GroupDTO> groupList);
-
     // Edit tournament name
     // void editTournamentName(TournamentDTO tournament, String newName);
 
@@ -50,14 +46,7 @@ public interface TournamentService {
     // For implementation: edit a specific group in the group list of a tournament
     // void editTournamentMatch(TournamentDTO tournament, MatchDTO match);
 
-    // Update tournament match
-    // void updateTournamentMatch(TournamentDTO tournament, List<MatchDTO> matchUpdateList);
-
     // Export tournament information
     // For implementation: search for the match by id OR replace parameter with a TournamentDTO
     // void exportTournamentInformation(TournamentDTO tournament);
-
-    // Update results
-    // For implementation: list of groups with edited scores, position ecc... to update in tournament's group list
-    // void updateTournamentResults(TournamentDTO tournament, List<MatchDTO> editedScores);
 }

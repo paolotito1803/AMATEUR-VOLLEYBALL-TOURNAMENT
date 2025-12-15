@@ -70,7 +70,7 @@ class TournamentPersistence {
 
     public Optional<TournamentEntity> updateTeams(List<String> teamsId, String tournamentId) {
         TournamentEntity tournamentEntity = tournamentRepository.findById(tournamentId).orElseThrow(() -> new RuntimeException("Tournament with id " + tournamentId + " not found"));
-        tournamentEntity.setTeams(teams);
+        tournamentEntity.setTeams(teamsId);
 
         tournamentRepository.save(tournamentEntity);
 
