@@ -49,11 +49,6 @@
                     </select>
                 </div>
 
-                <div class="mb-3" id="team-div" style="display:none;">
-                    <label class="form-label">Team Name (If creating a new team)</label>
-                    <input type="text" id="teamName" class="form-control">
-                </div>
-
                 <button type="submit" class="btn btn-success w-100">Register</button>
             </form>
 
@@ -65,16 +60,6 @@
 </div>
 
 <script>
-    function toggleTeamField() {
-        const role = document.getElementById("role").value;
-        const teamDiv = document.getElementById("team-div");
-        // Mostra il campo team solo se è COACH o PLAYER
-        if (role === 'COACH' || role === 'PLAYER') {
-            teamDiv.style.display = 'block';
-        } else {
-            teamDiv.style.display = 'none';
-        }
-    }
 
     async function handleRegister(event) {
         event.preventDefault();
