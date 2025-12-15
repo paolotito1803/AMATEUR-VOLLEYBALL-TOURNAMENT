@@ -19,6 +19,13 @@ public interface TournamentService {
 
     void updateMatchDate(String adminId, String matchId, String newDate);
 
+    /*
+    * Update match winner, search for possible matches in the next stage (stage + 1 and a match with no teamA or teamB)
+    * If it does not exist, fetch possible number of matches for the stage (maxTeamSize / 2^stage+1).
+    * If there is place for a match, create the match
+    */
+    void updateTournamentWinner(String adminId, String matchId, String winner);
+
     void updateMatchFreeSeats(String adminId, String matchId, int newFreeSeats);
 
     List<TeamDTO> getTeams();

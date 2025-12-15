@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -95,18 +96,14 @@ class TournamentServiceImpl implements TournamentService {
             throw new IllegalArgumentException(("Number of matches should be as big as the max tournament matches"));
         }
 
-        /* TODO create matches for first stage of the tournament
-        * Shuffles the teams
-        * Split in n matches
-        * Create the matches by assigning the teams
-        * Assign stadium to match (return matchid upon creation)
-        * Get stadium free seats and assign
-        * Assign referee
-        */
+        // Create tournament instance
+        tournamentPersistence.createTournament(tournamentName, maxTournamentTeams, teams);
 
+        // fetch id by new tournament name (as an alternative: return tournamentId upon creation)
         String tournamentId = tournamentPersistence.getTournamentIdByName(tournamentName)
                 .orElseThrow(() -> new RuntimeException("Id for tournament name " + tournamentName + " not found."));
 
+        // Create each match for the tournament
         for(int i = 0; i < teams.size(); i += 2) {
             createMatch(adminId, tournamentId, 1, teams.get(i), teams.get(i + 1));
         }
@@ -120,6 +117,30 @@ class TournamentServiceImpl implements TournamentService {
         }
 
         tournamentPersistence.createMatch(tournamentId, stage, teamA, teamB);
+    }
+
+    @Override
+    public void updateTournamentWinner(String adminId, String matchId, String winner) {
+        if(!usersService.isAdmin(adminId)) {
+            throw new IllegalArgumentException("User " + adminId + " is not authorized to update the tournament winner.");
+        }
+
+        if(!tournamentPersistence.existsByMatchId(matchId)) {
+            throw new IllegalArgumentException("Match for match id " + matchId + " not found.");
+        }
+
+        List<String> matchTeams = tournamentPersistence.getMatchTeams(matchId)
+                .orElseThrow(() -> new RuntimeException("Teams A and B for match " + matchId + " not found."));
+
+        if(Objects.equals(winner, matchTeams.getFirst()) || Objects.equals(winner, matchTeams.getLast())) {
+            tournamentPersistence.updateMatchWinner(matchId, winner);
+        }
+        else {
+            throw new IllegalArgumentException("Winner " + winner + " does not match teamA" + matchTeams.getFirst() +
+                    " or teamB " + matchTeams.getLast());
+        }
+
+        // Tournament stage management and eventually new match creation
     }
 
     @Override
