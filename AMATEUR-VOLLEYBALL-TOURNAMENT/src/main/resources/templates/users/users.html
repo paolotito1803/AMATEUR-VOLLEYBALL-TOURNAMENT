@@ -1,24 +1,32 @@
 <body class="bg-light">
 
 <div class="container mt-5">
+
+    <!-- 1. HEADER CON INFO UTENTE E LOGOUT -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Volleyball Users Dev Tools</h2>
+        <div>
+            <span id="user-display" class="me-3 fw-bold text-primary"></span>
+            <button onclick="logout()" class="btn btn-outline-danger btn-sm">Logout</button>
+        </div>
+    </div>
+
     <div class="card shadow">
         <div class="card-header bg-primary text-white">
-            <h2 class="mb-0">Volleyball Users Dev Tools</h2>
+            Management Console
         </div>
         <div class="card-body">
 
-            <!-- DEV BUTTONS -->
+            <!-- 2. DEV BUTTONS -->
             <div class="row text-center mb-4">
                 <div class="col-md-6">
-                    <!-- Nota: Se hai messo la security, assicurati che /seed sia pubblico -->
-                    <button onclick="callApi('/api/users/seed', 'POST')" class="btn btn-success btn-lg w-100">
+                    <button onclick="callApiWithToken('/api/users/seed', 'POST')" class="btn btn-success btn-lg w-100">
                         Seed Users Data
                     </button>
                     <small class="text-muted">Creates sample coaches, referees, viewers</small>
                 </div>
                 <div class="col-md-6">
-                    <!-- Nota: Se hai messo la security, assicurati che /reset sia pubblico -->
-                    <button onclick="callApi('/api/users/reset', 'DELETE')" class="btn btn-danger btn-lg w-100">
+                    <button onclick="callApiWithToken('/api/users/reset', 'DELETE')" class="btn btn-danger btn-lg w-100">
                         Reset Users
                     </button>
                     <small class="text-muted">Deletes ALL users (Soft Delete)</small>
@@ -27,15 +35,21 @@
 
             <hr>
 
-            <!-- USERS LIST -->
-            <h4>Current Users (Active Only):</h4>
-
-            <div th:if="${users.empty}" class="alert alert-warning">
-                No active users in the database.
+            <!-- 3. USERS LIST (CARICATA VIA JS, NON PIÙ THYMELEAF) -->
+            <div class="d-flex justify-content-between align-items-center">
+                <h4>Current Users:</h4>
+                <button onclick="loadUsers()" class="btn btn-sm btn-outline-secondary">Refresh List</button>
             </div>
 
-            <div class="table-responsive" th:unless="${users.empty}">
-                <table class="table table-striped table-bordered">
+            <!-- Messaggi di stato -->
+            <div id="loading-msg" class="text-center my-3">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p>Loading data...</p>
+            </div>
+            <div id="error-msg" class="alert alert-danger d-none"></div>
+
+            <div class="table-responsive mt-3">
+                <table class="table table-striped table-bordered" id="users-table" style="display:none;">
                     <thead class="table-dark">
                     <tr>
                         <th>Username</th>
@@ -44,13 +58,8 @@
                         <th>Role</th>
                     </tr>
                     </thead>
-                    <tbody>
-                    <tr th:each="user : ${users}">
-                        <td th:text="${user.username()}">Username</td>
-                        <td th:text="${user.surname()}">Surname</td>
-                        <td th:text="${user.email()}">Email</td>
-                        <td th:text="${user.role()}">Role</td>
-                    </tr>
+                    <tbody id="table-body">
+                    <!-- QUI JAVASCRIPT INSERIRÀ LE RIGHE -->
                     </tbody>
                 </table>
             </div>
@@ -59,23 +68,111 @@
     </div>
 </div>
 
-<!-- JAVASCRIPT: Invariato -->
+<!-- JAVASCRIPT -->
 <script>
-    function callApi(url, method) {
-        const btns = document.querySelectorAll("button");
-        btns.forEach(b => b.disabled = true);
+    // --- 1. CONTROLLO SICUREZZA INIZIALE ---
+    const token = localStorage.getItem('jwt_token');
+    const user = JSON.parse(localStorage.getItem('user_info'));
 
-        fetch(url, { method: method })
+    if (!token) {
+        // Se non c'è il token, via al login
+        window.location.href = '/users/login';
+    } else {
+        // Mostra nome utente
+        if(user) {
+            document.getElementById('user-display').textContent = "Hello, " + user.username;
+        }
+        // Avvia il caricamento dati
+        loadUsers();
+    }
+
+    // --- 2. FUNZIONE LOGOUT ---
+    function logout() {
+        localStorage.removeItem('jwt_token');
+        localStorage.removeItem('user_info');
+        window.location.href = '/users/login';
+    }
+
+    // --- 3. CARICAMENTO DATI TABELLA ---
+    async function loadUsers() {
+        const tableBody = document.getElementById('table-body');
+        const loadingMsg = document.getElementById('loading-msg');
+        const errorMsg = document.getElementById('error-msg');
+        const table = document.getElementById('users-table');
+
+        // Reset UI
+        loadingMsg.style.display = 'block';
+        table.style.display = 'none';
+        errorMsg.classList.add('d-none');
+        tableBody.innerHTML = '';
+
+        try {
+            const response = await fetch('/api/users', {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token, // IMPORTANTE: Passiamo il token
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.status === 401 || response.status === 403) {
+                logout(); // Token scaduto
+                return;
+            }
+
+            if (!response.ok) throw new Error("Failed to load users");
+
+            const users = await response.json();
+
+            if (users.length === 0) {
+                errorMsg.textContent = "No active users found.";
+                errorMsg.classList.remove('d-none');
+            } else {
+                // Genera le righe HTML
+                users.forEach(u => {
+                    const row = `
+                        <tr>
+                            <td>${u.username}</td>
+                            <td>${u.surname}</td>
+                            <td>${u.email}</td>
+                            <td><span class="badge bg-secondary">${u.role}</span></td>
+                            <td>${u.teamName ? u.teamName : '-'}</td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+                table.style.display = 'table';
+            }
+
+        } catch (error) {
+            errorMsg.textContent = "Error: " + error.message;
+            errorMsg.classList.remove('d-none');
+        } finally {
+            loadingMsg.style.display = 'none';
+        }
+    }
+
+    // --- 4. FUNZIONE PER I BOTTONI DEV (SEED/RESET) ---
+    function callApiWithToken(url, method) {
+        if(!confirm("Are you sure?")) return;
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Authorization': 'Bearer ' + token, // Anche qui usiamo il token per sicurezza
+                'Content-Type': 'application/json'
+            }
+        })
             .then(response => {
                 if (response.ok) {
-                    window.location.reload();
+                    alert("Operation successful!");
+                    loadUsers(); // Ricarica la tabella senza aggiornare la pagina
                 } else {
                     return response.text().then(text => { throw new Error(text) });
                 }
             })
             .catch(error => {
                 alert("Error: " + error.message);
-                btns.forEach(b => b.disabled = false);
             });
     }
 </script>

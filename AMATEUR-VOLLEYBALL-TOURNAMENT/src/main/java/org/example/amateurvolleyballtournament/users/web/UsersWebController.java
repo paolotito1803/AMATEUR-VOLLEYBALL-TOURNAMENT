@@ -21,6 +21,16 @@ class UsersWebController {
     public String showManagerPage(Model model) {
         // TODO: aggiungi logica di sicurezza per admin
         model.addAttribute("users", usersService.getAllUsers());
-        return "users/manager"; // template Thymeleaf: templates/users/manager.html
+        return "users/users"; // template Thymeleaf: templates/users/manager.html
+    }
+
+    @GetMapping("/login")
+    public String showLoginPage(Model model) {
+        return "users/login";
+    }
+
+    @GetMapping("/registration")
+    public String showRegistrationPage(Model model) {
+        return "users/registrer";
     }
 }
