@@ -23,7 +23,6 @@ public class MatchEntity {
     private int freeSeats;
     private String matchDate;
     private String referee;
-    private int position;
     private int stage;
     private String teamA;
     private String teamB;
@@ -32,7 +31,7 @@ public class MatchEntity {
     private String winner;
     private String nextMatchId;
 
-    public MatchEntity(String tournament, String stadium, int freeSeats, String referee, String matchDate, int position, int stage,
+    public MatchEntity(String tournament, String stadium, int freeSeats, String referee, String matchDate, int stage,
                        String teamA, String teamB, int scoreA, int scoreB, String winner, String nextMatchId) {
         this.matchId = UUID.randomUUID().toString();
         this.tournament = tournament;
@@ -40,7 +39,6 @@ public class MatchEntity {
         this.freeSeats = freeSeats;
         this.matchDate  = matchDate;
         this.referee = referee;
-        this.position = position;
         this.stage = stage;
         this.teamA = teamA;
         this.teamB = teamB;
