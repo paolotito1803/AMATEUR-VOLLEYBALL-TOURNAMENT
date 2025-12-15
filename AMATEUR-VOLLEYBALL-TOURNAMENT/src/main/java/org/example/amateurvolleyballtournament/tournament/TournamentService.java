@@ -34,10 +34,10 @@ public interface TournamentService {
     Optional<MatchDTO> getNextMatch(String matchId);
 
     // Check parameters for creation, fetch matches and teams and manage first stage of tournament
-    void createTournament(String adminId, String tournamentName, List<String> matches, List<String> teams);
+    void createTournament(String adminId, String tournamentName, int maxTournamentTeams, List<String> teams);
 
     // Generate a match: assign team A, team B, stadium, free seats, date ...
-    void createMatch(String adminId, String stadium, int freeSeats, String matchDate, String referee, int position, int stage, String teamA, String teamB);
+    void createMatch(String adminId, String torunamentId, int position, int stage, String teamA, String teamB);
 
     // Groups creation
     // For implementation: assign a new group list to a tournament

@@ -32,6 +32,13 @@ class TournamentPersistence {
         return matchRepository.findById(matchId);
     }
 
+    public int getMaxTournamentTeams(String tournamentId) {
+        TournamentEntity tournamentEntity = tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new RuntimeException("Tournament with id " + tournamentId + " not found."));
+
+        return tournamentEntity.getMaxTournamentTeams();
+    }
+
     public Optional<String> getMatchReferee(String matchId) {
         MatchEntity matchEntity = this.getMatchOrThrow(matchId);
         return Optional.ofNullable(matchEntity.getReferee());
@@ -88,6 +95,12 @@ class TournamentPersistence {
         matchRepository.save(matchEntity);
 
         return Optional.of(matchEntity);
+    }
+
+    public void createMatch(String torunamentId, int position, int stage, String teamA, String teamB) {
+        MatchEntity matchEntity = new MatchEntity(torunamentId, "", 0, "", "", position, stage, teamA, teamB, 0, 0, "", "");
+
+        matchRepository.save(matchEntity);
     }
 
     public boolean existsByTournamentId(String tournamentId) {

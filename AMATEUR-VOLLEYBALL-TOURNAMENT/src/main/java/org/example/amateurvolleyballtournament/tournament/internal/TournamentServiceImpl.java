@@ -86,14 +86,30 @@ class TournamentServiceImpl implements TournamentService {
 
     // Check parameters for creation, fetch matches and teams and manage first stage of tournament
     @Override
-    public void createTournament(String adminId, String tournamentName, List<String> matches, List<String> teams) {
-        // TODO
+    public void createTournament(String adminId, String tournamentName, int maxTournamentTeams, List<String> teams) {
+        if(!usersService.isAdmin(adminId)) {
+            throw new IllegalArgumentException("User" + adminId + " is not authorized to update the teams of the tournament.");
+        }
+
+        if(teams.size() != maxTournamentTeams) {
+            throw new IllegalArgumentException(("Number of matches should be as big as the max tournament matches"));
+        }
+
+        /* TODO create matches for first stage of the tournament
+        * Shuffles the teams
+        * Split in n matches
+        * Create the matches by assigning the teams
+        */
     }
 
-    // Generate a match: assign team A, team B, stadium, free seats, date ...
+    // Generate a match: assign team A, team B
     @Override
-    public void createMatch(String adminId, String stadium, int freeSeats, String matchDate, String referee, int position, int stage, String teamA, String teamB) {
-        //TODO
+    public void createMatch(String adminId, String tournamentId, int position, int stage, String teamA, String teamB) {
+        if(!usersService.isAdmin(adminId)) {
+            throw new IllegalArgumentException("User" + adminId + " is not authorized to update the teams of the tournament.");
+        }
+
+        tournamentPersistence.createMatch(tournamentId, position, stage, teamA, teamB);
     }
 
     @Override

@@ -17,14 +17,16 @@ public class TournamentEntity {
     @Id // JPA: Primary Key
     private String tournamentId; // UUID
     private String tournamentName;
+    private int maxTournamentTeams;
     private List<String> teams;
 
     @OneToMany(mappedBy = "tournament", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MatchEntity> matches  = new ArrayList<>();
 
-    public TournamentEntity(String tournamentName) {
+    public TournamentEntity(String tournamentName, int maxTournamentTeams) {
         this.tournamentId = UUID.randomUUID().toString();
         this.tournamentName =  tournamentName;
         this.teams = new ArrayList<>();
+        this.maxTournamentTeams = maxTournamentTeams;
     }
 }
