@@ -4,6 +4,8 @@ package org.example.amateurvolleyballtournament.ticketing.internal;
 
 import org.example.amateurvolleyballtournament.ticketing.TicketDTO;
 import org.example.amateurvolleyballtournament.ticketing.TicketService;
+import org.example.amateurvolleyballtournament.tournament.TournamentService;
+import org.example.amateurvolleyballtournament.users.UsersService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,9 +15,13 @@ import java.util.List;
 @Transactional
 class TicketServiceImpl implements TicketService {
     private TicketPersistence db;
+    private TournamentService tournamentService;
+    private UsersService usersService;
 
-    TicketServiceImpl(TicketPersistence db) {
+    TicketServiceImpl(TicketPersistence db,  TournamentService tournamentService, UsersService usersService) {
         this.db = db;
+        this.tournamentService = tournamentService;
+        this.usersService = usersService;
     }
 
     @Override

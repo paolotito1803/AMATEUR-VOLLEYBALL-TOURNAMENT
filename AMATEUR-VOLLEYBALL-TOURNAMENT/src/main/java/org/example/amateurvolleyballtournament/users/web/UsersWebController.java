@@ -23,4 +23,14 @@ class UsersWebController {
         model.addAttribute("users", usersService.getAllUsers());
         return "users/users"; // template Thymeleaf: templates/users/manager.html
     }
+
+    @GetMapping("/login")
+    public String showLoginPage(Model model) {
+        return "users/login";
+    }
+
+    @GetMapping("/registration")
+    public String showRegistrationPage(Model model) {
+        return "users/register";
+    }
 }

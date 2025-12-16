@@ -18,24 +18,33 @@ import java.util.UUID;
 public class MatchEntity {
     @Id // JPA: Primary Key
     private String matchId; // UUID
-    /*
-    *   Instead of stadium, freeSeats
-    *   @Embedded
-    *   private StadiumEmbeddable stadium;
-    */
+    private String tournament;
     private String stadium;
     private int freeSeats;
-    private Date matchDate;
+    private String matchDate;
     private String referee;
-    private int position;
     private int stage;
+    private String teamA;
+    private String teamB;
     private int scoreA;
     private int scoreB;
-    //private MatchEntity nextMatch;
+    private String winner;
+    private String nextMatchId;
 
-    public MatchEntity(String stadium, int freeSeats) {
+    public MatchEntity(String tournament, String stadium, int freeSeats, String referee, String matchDate, int stage,
+                       String teamA, String teamB, int scoreA, int scoreB, String winner, String nextMatchId) {
         this.matchId = UUID.randomUUID().toString();
+        this.tournament = tournament;
         this.stadium = stadium;
         this.freeSeats = freeSeats;
+        this.matchDate  = matchDate;
+        this.referee = referee;
+        this.stage = stage;
+        this.teamA = teamA;
+        this.teamB = teamB;
+        this.scoreA = scoreA;
+        this.scoreB = scoreB;
+        this.winner = winner;
+        this.nextMatchId = nextMatchId;
     }
 }

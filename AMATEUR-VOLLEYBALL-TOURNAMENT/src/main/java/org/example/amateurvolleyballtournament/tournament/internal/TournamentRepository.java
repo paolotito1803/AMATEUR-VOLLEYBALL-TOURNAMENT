@@ -9,10 +9,12 @@ import java.util.Optional;
 @Repository
 interface TournamentRepository extends JpaRepository<TournamentEntity, String> {
 
-//    Optional<TournamentEntity> findByTournamentName(String tournamentName);
+    Optional<TournamentEntity> findById(String tournamentId);
+    Optional<TournamentEntity> findByTournamentName(String tournamentName);
 //
 //    Optional<TournamentEntity> findByMatchId(int matchId);
 //
+    boolean existsById(String tournamentId);
 //    boolean existsByMatchDate(Date matchDate);
 //    boolean existsByMatchId(int matchId);
 }

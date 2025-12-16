@@ -1,6 +1,9 @@
 package org.example.amateurvolleyballtournament.tournament;
 
+import org.example.amateurvolleyballtournament.teams.TeamDTO;
+
 import java.util.List;
+import java.util.Optional;
 
 public interface TournamentService {
 
@@ -10,9 +13,38 @@ public interface TournamentService {
     // Tournament creation
     List<TournamentDTO> getAllTournaments();
 
-    // Groups creation
-    // For implementation: assign a new group list to a tournament
-    // void createTournamentGroups(TournamentDTO tournament, List<GroupDTO> groupList);
+    void updateTeams(String adminId, List<String> teams, String tournamentId);
+
+    void updateMatchReferee(String adminId, String matchId, String newReferee);
+
+    void updateMatchDate(String adminId, String matchId, String newDate);
+
+    /*
+    * Update match winner, search for possible matches in the next stage (stage + 1 and a match with no teamA or teamB)
+    * If it does not exist, fetch possible number of matches for the stage (maxTeamSize / 2^stage+1).
+    * If there is place for a match, create the match
+    */
+    void updateTournamentWinner(String adminId, String matchId, String winner);
+
+    void updateMatchFreeSeats(String adminId, String matchId, int newFreeSeats);
+
+    List<TeamDTO> getTeams();
+
+    String getMatchReferee(String matchId);
+
+    String getMatchDate(String matchId);
+
+    Optional<MatchDTO> getMatchInformation(String matchId);
+
+    String getMatchWinner(String matchId);
+
+    Optional<MatchDTO> getNextMatch(String matchId);
+
+    // Check parameters for creation, fetch matches and teams and manage first stage of tournament
+    void createTournament(String adminId, String tournamentName, int maxTournamentTeams, List<String> teams);
+
+    // Generate a match: assign team A, team B, stadium, free seats, date ...
+    void createMatch(String adminId, String torunamentId, int stage, String teamA, String teamB);
 
     // Edit tournament name
     // void editTournamentName(TournamentDTO tournament, String newName);
@@ -21,26 +53,7 @@ public interface TournamentService {
     // For implementation: edit a specific group in the group list of a tournament
     // void editTournamentMatch(TournamentDTO tournament, MatchDTO match);
 
-    // Update tournament match
-    // void updateTournamentMatch(TournamentDTO tournament, List<MatchDTO> matchUpdateList);
-
-    // Update match date
-    // void updateMatchDate(MatchDTO match, Date newDate);
-
-    // Update Team List. Also update matches (linked to the tournament's teams)
-    // void updateTournamentTeams(TournamentDTO tournament, List<TeamDTO> newTeamList);
-
-    // Assign referee
-    // void assignMatchReferee(MatchDTO match, String referee);
-
     // Export tournament information
     // For implementation: search for the match by id OR replace parameter with a TournamentDTO
     // void exportTournamentInformation(TournamentDTO tournament);
-
-    // Update results
-    // For implementation: list of groups with edited scores, position ecc... to update in tournament's group list
-    // void updateTournamentResults(TournamentDTO tournament, List<MatchDTO> editedScores);
-
-    // Assign Stadium
-    // void assignMatchStadium(MatchDTO match, String stadium);
 }

@@ -6,7 +6,7 @@ import lombok.Data; // Consiglio Lombok per ridurre boilerplate, altrimenti gene
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", schema = "users_module")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor // Crea il costruttore vuoto
