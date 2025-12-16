@@ -1,4 +1,5 @@
 package org.example.amateurvolleyballtournament.tournament.web;
+import org.example.amateurvolleyballtournament.teams.StadiumDTO;
 import org.example.amateurvolleyballtournament.teams.TeamDTO;
 import org.example.amateurvolleyballtournament.teams.TeamService;
 import org.example.amateurvolleyballtournament.tournament.*;
@@ -31,6 +32,32 @@ class TournamentRestController {
 
     @GetMapping("/match/referee")
     public String getMatchReferee(@RequestParam("matchId") String matchId) {return tournamentService.getMatchReferee(matchId); }
+
+    @GetMapping("/match/get")
+    public MatchDTO getMatchInformation(@RequestParam("matchId") String matchId) {
+        return tournamentService.getMatchInformation(matchId).orElseThrow(() -> new RuntimeException("No match found for matchId: " + matchId));
+    }
+
+    @GetMapping("/match/get_next_match")
+    public MatchDTO getNextMatch(@RequestParam("matchId") String matchId) {
+        return tournamentService.getNextMatch(matchId)
+                .orElseThrow(() -> new RuntimeException("No match or next match found for matchId: " + matchId));
+    }
+
+    @GetMapping("/match/get_match_winner")
+    public String getMatchWinner(@RequestParam("matchId") String matchId) {
+        return tournamentService.getMatchWinner(matchId);
+    }
+
+    @PostMapping("/update_name")
+    public ResponseEntity<String> updateTournamentName(@RequestParam String adminId,
+                                                       @RequestParam String tournamentId,
+                                                       @RequestParam String tournamentName) {
+
+        tournamentService.updateTournamentName(adminId, tournamentId, tournamentName);
+
+        return ResponseEntity.ok("Tournament updated successfully");
+    }
 
     // UpdateTeams
     @PostMapping
@@ -71,5 +98,45 @@ class TournamentRestController {
         return ResponseEntity.ok("Free seats for match " + matchId + "updated successfully to value " + newFreeSeats);
     }
 
-    // public TournamentDTO creteTournament(String id, String tournamentName, List<MatchDTO> matches, List<TeamDTO> teams) {}
+    @PostMapping("/match/update_statium")
+    public ResponseEntity<String> updateMatchStadium(@RequestParam String adminId,
+                                                     @RequestParam String matchId,
+                                                     @RequestParam String newStadium) {
+        tournamentService.updateMatchStadium(adminId, matchId, newStadium);
+        // TODO: update seats and date if stadium gets changed
+        return ResponseEntity.ok("Stadium " + newStadium + " updated successfully.");
+    }
+
+    // Also automatically manage matches creation for first stage
+    @PostMapping("/create_tournament")
+    public ResponseEntity<String> createTournament(@RequestParam String adminId,
+                                                        @RequestParam String tournamentName,
+                                                        @RequestParam int maxTournamentTeams,
+                                                        @RequestParam List<String> teams) {
+        tournamentService.createTournament(adminId, tournamentName, maxTournamentTeams, teams);
+
+        return ResponseEntity.ok("Tournament " + tournamentName + " created successfully.");
+    }
+
+    @PostMapping("/match/create_match")
+    public ResponseEntity<String> createMatch(@RequestParam String adminId,
+                                              @RequestParam String tournamentId,
+                                              @RequestParam int stage,
+                                              @RequestParam String teamA,
+                                              @RequestParam String teamB) {
+
+        tournamentService.createMatch(adminId, tournamentId, stage, teamA, teamB);
+
+        return ResponseEntity.ok("Match for tournament " + tournamentId + " created successfully.");
+    }
+
+    // Update match winner and assign it to upper matches (or create a new stage)
+    @PostMapping("/match/update_winner")
+    public ResponseEntity<String> updateMatchWinner(@RequestParam String adminId,
+                                                    @RequestParam String matchId,
+                                                    @RequestParam String winner) {
+        tournamentService.updateMatchWinner(adminId, matchId, winner);
+
+        return ResponseEntity.ok("Match winner " + winner + " for match " + matchId + "  updated successfully.");
+    }
 }

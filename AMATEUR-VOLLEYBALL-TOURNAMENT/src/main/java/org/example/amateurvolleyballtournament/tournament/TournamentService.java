@@ -7,9 +7,6 @@ import java.util.Optional;
 
 public interface TournamentService {
 
-    /* TODO: capire se specificare unicamente i match per le modifiche o le assegnazioni o se inserire anche
-        l'id del torneo per questioni di ricerca */
-
     // Tournament creation
     List<TournamentDTO> getAllTournaments();
 
@@ -19,14 +16,13 @@ public interface TournamentService {
 
     void updateMatchDate(String adminId, String matchId, String newDate);
 
-    /*
-    * Update match winner, search for possible matches in the next stage (stage + 1 and a match with no teamA or teamB)
-    * If it does not exist, fetch possible number of matches for the stage (maxTeamSize / 2^stage+1).
-    * If there is place for a match, create the match
-    */
-    void updateTournamentWinner(String adminId, String matchId, String winner);
+    void updateMatchWinner(String adminId, String matchId, String winner);
 
     void updateMatchFreeSeats(String adminId, String matchId, int newFreeSeats);
+
+    void updateMatchStadium(String adminId, String matchId, String stadium);
+
+    void updateTournamentName(String adminId, String tournamentId, String tournamentName);
 
     List<TeamDTO> getTeams();
 
@@ -45,15 +41,4 @@ public interface TournamentService {
 
     // Generate a match: assign team A, team B, stadium, free seats, date ...
     void createMatch(String adminId, String torunamentId, int stage, String teamA, String teamB);
-
-    // Edit tournament name
-    // void editTournamentName(TournamentDTO tournament, String newName);
-
-    // Edit tournament match
-    // For implementation: edit a specific group in the group list of a tournament
-    // void editTournamentMatch(TournamentDTO tournament, MatchDTO match);
-
-    // Export tournament information
-    // For implementation: search for the match by id OR replace parameter with a TournamentDTO
-    // void exportTournamentInformation(TournamentDTO tournament);
 }

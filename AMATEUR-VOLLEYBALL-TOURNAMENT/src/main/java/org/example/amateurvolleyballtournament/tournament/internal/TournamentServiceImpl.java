@@ -120,7 +120,8 @@ class TournamentServiceImpl implements TournamentService {
     }
 
     @Override
-    public void updateTournamentWinner(String adminId, String matchId, String winner) {
+    public void updateMatchWinner(String adminId, String matchId, String winner) {
+        // Check for permissions
         if(!usersService.isAdmin(adminId)) {
             throw new IllegalArgumentException("User " + adminId + " is not authorized to update the tournament winner.");
         }
@@ -129,9 +130,14 @@ class TournamentServiceImpl implements TournamentService {
             throw new IllegalArgumentException("Match for match id " + matchId + " not found.");
         }
 
+        // Fetch match tournament id
+        String tournamentId = tournamentPersistence.getTournamentIdByMatchId(matchId);
+
+        // Fetch teams from match
         List<String> matchTeams = tournamentPersistence.getMatchTeams(matchId)
                 .orElseThrow(() -> new RuntimeException("Teams A and B for match " + matchId + " not found."));
 
+        // Update match winner
         if(Objects.equals(winner, matchTeams.getFirst()) || Objects.equals(winner, matchTeams.getLast())) {
             tournamentPersistence.updateMatchWinner(matchId, winner);
         }
@@ -141,6 +147,45 @@ class TournamentServiceImpl implements TournamentService {
         }
 
         // Tournament stage management and eventually new match creation
+        int maxStage = tournamentPersistence.getMatchesMaxStage(tournamentId);
+
+        List<MatchEntity> matchInStageList = tournamentPersistence.getMatchesInTournamentStage(tournamentId, maxStage)
+                .orElseThrow(() -> new RuntimeException("An error occurred while trying to update the tournament winner."));
+
+        if(tournamentPersistence.getMatchStage(matchId) < maxStage) {
+            for(MatchEntity match : matchInStageList) {
+                // If it founds an empty team in the max stage matches, update one of the team with the winner
+                if(match.getTeamA().isEmpty()) {
+                    match.setTeamA(winner);
+                    // Update winner's match with next match
+                    tournamentPersistence.updateNextMatch(matchId, match.getMatchId());
+                    break;
+                }
+                else if(match.getTeamB().isEmpty()) {
+                    match.setTeamB(winner);
+                    // Update winner's match with next match
+                    tournamentPersistence.updateNextMatch(matchId, match.getMatchId());
+                    break;
+                }
+            }
+        }
+        else {
+            // Create a new match with a new maximum stage and the winner as one of the teams
+            createMatch(adminId, tournamentId, maxStage + 1, winner, "");
+        }
+    }
+
+    @Override
+    public void updateTournamentName(String adminId, String tournamentId, String tournamentName) {
+        if(!usersService.isAdmin(adminId)) {
+            throw new IllegalArgumentException("User " + adminId + " is not authorized to update the tournament name.");
+        }
+
+        if(!tournamentPersistence.existsByTournamentId(tournamentId)) {
+            throw new IllegalArgumentException("Tournament with id " + tournamentId + " not found.");
+        }
+
+        tournamentPersistence.updateTournamentName(tournamentId, tournamentName);
     }
 
     @Override
@@ -198,6 +243,19 @@ class TournamentServiceImpl implements TournamentService {
 
         // ADD CONTROL FOR MAX SEATS
         tournamentPersistence.updateMatchFreeSeats(matchId, newFreeSeats);
+    }
+
+    @Override
+    public void updateMatchStadium(String adminId, String matchId, String stadium) {
+        if(!usersService.isAdmin(adminId)) {
+            throw new IllegalArgumentException("User " + adminId + " is not authorized to update the match stadium.");
+        }
+
+        if(!tournamentPersistence.existsByMatchId(matchId)) {
+            throw new IllegalArgumentException("Match " + matchId + " does not exist.");
+        }
+
+        tournamentPersistence.updateMatchStadium(matchId, stadium);
     }
 
     // TODO: Is it a useful function?
