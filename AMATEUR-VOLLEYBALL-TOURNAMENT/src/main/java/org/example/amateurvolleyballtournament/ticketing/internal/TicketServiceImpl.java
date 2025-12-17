@@ -4,12 +4,14 @@ package org.example.amateurvolleyballtournament.ticketing.internal;
 
 import org.example.amateurvolleyballtournament.ticketing.TicketDTO;
 import org.example.amateurvolleyballtournament.ticketing.TicketService;
+import org.example.amateurvolleyballtournament.tournament.MatchDTO;
 import org.example.amateurvolleyballtournament.tournament.TournamentService;
 import org.example.amateurvolleyballtournament.users.UsersService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -31,6 +33,8 @@ class TicketServiceImpl implements TicketService {
 
         TicketEntity ticket = new TicketEntity(numSeat, matchId, userId);
         db.save(ticket);
+        int n = tournamentService.getMatchInformation(matchId).get().freeSeats();
+        tournamentService.updateMatchFreeSeats(userId, matchId, n-1);
     }
 
     @Override
@@ -40,7 +44,11 @@ class TicketServiceImpl implements TicketService {
 
     @Override
     public int availableSeats(String match) {
-        return db.findTicketByMatchId(match).size();
+        Optional<MatchDTO> m = tournamentService.getMatchInformation(match);
+        if(m.isPresent())
+            return m.get().freeSeats();
+        else
+            throw new RuntimeException("No match seats have been found");
     }
 
     @Override

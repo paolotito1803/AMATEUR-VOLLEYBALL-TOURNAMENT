@@ -80,6 +80,57 @@ class TournamentPersistence {
         return Optional.of(teamList);
     }
 
+    public String getTournamentIdByMatchId(String matchId) {
+        MatchEntity matchEntity = matchRepository.findById(matchId).orElseThrow(
+                () -> new RuntimeException("Match with id " + matchId + " not found.")
+        );
+
+        return matchEntity.getTournament();
+    }
+
+    public int getMatchStage(String matchId) {
+        MatchEntity matchEntity = matchRepository.findById(matchId).orElseThrow(
+                () -> new RuntimeException("Match with id " + matchId + " not found.")
+        );
+
+        return matchEntity.getStage();
+    }
+
+    public int getMatchesMaxStage(String tournamentId) {
+        TournamentEntity tournamentEntity = tournamentRepository.findById(tournamentId).orElseThrow(
+                () -> new RuntimeException("Tournament with id " + tournamentId + " not found")
+        );
+
+        int maxStage = 0;
+
+        List<MatchEntity> matchList = tournamentEntity.getMatches();
+        for(MatchEntity matchEntity : matchList) {
+            if(matchEntity.getStage() > maxStage) {
+                maxStage = matchEntity.getStage();
+            }
+        }
+
+        return maxStage;
+    }
+
+    public Optional<List<MatchEntity>> getMatchesInTournamentStage(String tournamentId, int stage) {
+        TournamentEntity tournamentEntity = tournamentRepository.findById(tournamentId).orElseThrow(
+                () -> new RuntimeException("Tournament with id " + tournamentId + " not found")
+        );
+
+        List<MatchEntity> matchList = tournamentEntity.getMatches();
+
+        List<MatchEntity> matchListInStage = new ArrayList<>();
+
+        for(MatchEntity matchEntity : matchList) {
+            if(matchEntity.getStage() == stage) {
+                matchListInStage.add(matchEntity);
+            }
+        }
+
+        return Optional.of(matchListInStage);
+    }
+
     public void updateMatchWinner(String matchId, String winner) {
         MatchEntity matchEntity = matchRepository.findById(matchId)
                 .orElseThrow(() -> new RuntimeException("Match with id " + matchId + " not found."));
@@ -114,6 +165,15 @@ class TournamentPersistence {
         return Optional.of(matchEntity);
     }
 
+    public Optional<MatchEntity> updateMatchStadium(String matchId, String stadium) {
+        MatchEntity matchEntity = matchRepository.findById(matchId).orElseThrow(() -> new RuntimeException("Match with id " + matchId + " not found"));
+        matchEntity.setStadium(stadium);
+
+        matchRepository.save(matchEntity);
+
+        return Optional.of(matchEntity);
+    }
+
     public Optional<MatchEntity> updateMatchFreeSeats(String matchId, int freeSeats) {
         MatchEntity matchEntity = matchRepository.findById(matchId).orElseThrow(() -> new RuntimeException("Match with id " + matchId + " not found"));
         matchEntity.setFreeSeats(freeSeats);
@@ -121,6 +181,21 @@ class TournamentPersistence {
         matchRepository.save(matchEntity);
 
         return Optional.of(matchEntity);
+    }
+
+    public void updateNextMatch(String matchId, String nextMatchId) {
+        MatchEntity matchEntity = matchRepository.findById(matchId).orElseThrow(() -> new RuntimeException("Match with id " + matchId + " not found"));
+        matchEntity.setNextMatchId(nextMatchId);
+        matchRepository.save(matchEntity);
+    }
+
+    public void updateTournamentName(String tournamentId, String tournamentName) {
+        TournamentEntity tournamentEntity = tournamentRepository.findById(tournamentId).orElseThrow(
+                () -> new RuntimeException("Tournament with id " + tournamentId + " not found")
+        );
+
+        tournamentEntity.setTournamentName(tournamentName);
+        tournamentRepository.save(tournamentEntity);
     }
 
     public void createTournament(String tournamentName, int maxTournamentTeams, List<String> teams) {
