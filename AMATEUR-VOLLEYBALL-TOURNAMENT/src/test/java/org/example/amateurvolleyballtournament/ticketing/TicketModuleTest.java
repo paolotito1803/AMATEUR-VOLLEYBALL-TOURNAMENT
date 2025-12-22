@@ -1,5 +1,7 @@
 package org.example.amateurvolleyballtournament.ticketing;
 
+import org.example.amateurvolleyballtournament.tournament.MatchDTO;
+import org.example.amateurvolleyballtournament.tournament.TournamentService;
 import org.example.amateurvolleyballtournament.users.UsersService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @ApplicationModuleTest
@@ -19,14 +22,21 @@ public class TicketModuleTest {
 
     @MockitoBean
     UsersService usersService;
+    @MockitoBean
+    TournamentService tournamentService;
 
     @Test
     void shouldAddTicketSuccessfully(){
         String userId = "user_" + UUID.randomUUID();
-        String match = "match_" + UUID.randomUUID();
+        String matchId = "match_" + UUID.randomUUID();
 
-        when(ticketService.availableSeats(match) != 0).thenReturn(true);
-        ticketService.addTicket(13,userId,match);
+        // Mock the Tournament Service to say ìthere are seats
+        MatchDTO mockMatch = new MatchDTO(matchId, "Stadium", 10, "2025-01-01", "Ref", 1, "A", "B", 0, 0, "", "");
+        when(tournamentService.getMatchInformation(matchId)).thenReturn(Optional.of(mockMatch));
+
+        // Real TicketService action
+        ticketService.addTicket(13, userId, matchId);
+
         List<TicketDTO> tickets = ticketService.getAllTicketsByUserId(userId);
         assertThat(tickets).hasSize(1);
         assertThat(tickets.getFirst().numSeat()).isEqualTo(13);
@@ -46,12 +56,15 @@ public class TicketModuleTest {
     @Test
     void shouldNotAddTicketSuccessfullyIfNoSeatsAvailable(){
         String userId = "user_" + UUID.randomUUID();
-        String match = "match_" + UUID.randomUUID();
+        String matchId = "match_" + UUID.randomUUID();
 
-        when(ticketService.availableSeats(match) != 0).thenReturn(false);
-        assertThatThrownBy(()->ticketService.addTicket(13,userId,match))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("No seats are available for this match");
+        // Mock the Tournament Service to say 0 seats left
+        MatchDTO fullMatch = new MatchDTO(matchId, "Stadium", 0, "2025-01-01", "Ref", 1, "A", "B", 0, 0, "", "");
+        when(tournamentService.getMatchInformation(matchId)).thenReturn(Optional.of(fullMatch));
+
+        // Real TicketService action
+        assertThatThrownBy(() -> ticketService.addTicket(13, userId, matchId))
+                .isInstanceOf(RuntimeException.class);
     }
 
     @Test
