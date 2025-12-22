@@ -64,7 +64,7 @@ public class TicketModuleTest {
 
         // Real TicketService action
         assertThatThrownBy(() -> ticketService.addTicket(13, userId, matchId))
-                .isInstanceOf(RuntimeException.class);
+                .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
