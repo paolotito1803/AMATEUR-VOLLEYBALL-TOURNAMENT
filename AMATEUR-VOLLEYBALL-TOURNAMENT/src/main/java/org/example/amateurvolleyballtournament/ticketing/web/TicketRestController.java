@@ -10,6 +10,7 @@ import org.example.amateurvolleyballtournament.users.UsersService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.example.amateurvolleyballtournament.ticketing.web.BookTicketRequest;
 
 import java.util.List;
 
@@ -38,10 +39,12 @@ class TicketRestController {
         return ticketService.availableSeats(match);
     }
 
+    // Use @RequestBody is more standard, easier for frontend and complies to our use of DTOs
     @PostMapping("/booking")
-    public ResponseEntity<String> bookTicket(@RequestParam int numSeat, @RequestParam String match, @RequestParam String user){
-        ticketService.addTicket(numSeat, match, user);
-        return  ResponseEntity.ok("Ticket book successfully");
+    public ResponseEntity<String> bookTicket(@RequestBody BookTicketRequest request) {
+        ticketService.addTicket(request.numSeat(), request.userId(), request.matchId());
+
+        return ResponseEntity.ok("Ticket booked successfully");
     }
 
     // POST http://localhost:8080/api/tickets/seed
