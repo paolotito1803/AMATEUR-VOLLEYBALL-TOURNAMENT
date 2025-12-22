@@ -10,12 +10,10 @@ import java.util.Optional;
 
 @Component
 class TournamentPersistence {
-    private List<String> teams;
     private final TournamentRepository tournamentRepository;
     private final MatchRepository matchRepository;
 
-    TournamentPersistence(List<String> teams, TournamentRepository tournamentRepository, MatchRepository matchRepository) {
-        this.teams = teams;
+    TournamentPersistence(TournamentRepository tournamentRepository, MatchRepository matchRepository) {
         this.tournamentRepository = tournamentRepository;
         this.matchRepository = matchRepository;
     }
