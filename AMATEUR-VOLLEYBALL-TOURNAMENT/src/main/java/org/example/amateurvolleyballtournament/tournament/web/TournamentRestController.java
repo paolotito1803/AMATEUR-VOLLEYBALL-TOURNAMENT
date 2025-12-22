@@ -3,10 +3,12 @@ import org.example.amateurvolleyballtournament.teams.StadiumDTO;
 import org.example.amateurvolleyballtournament.teams.TeamDTO;
 import org.example.amateurvolleyballtournament.teams.TeamService;
 import org.example.amateurvolleyballtournament.tournament.*;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -27,8 +29,11 @@ class TournamentRestController {
         return tournamentService.getAllTournaments();
     }
 
+    //JSON Date (like "2025-12-25T15:00:00")
     @GetMapping("/match/date")
-    public String getMatchDate(@RequestParam("matchId") String matchId) { return tournamentService.getMatchDate(matchId); }
+    public LocalDateTime getMatchDate(@RequestParam("matchId") String matchId) {
+        return tournamentService.getMatchDate(matchId);
+    }
 
     @GetMapping("/match/referee")
     public String getMatchReferee(@RequestParam("matchId") String matchId) {return tournamentService.getMatchReferee(matchId); }
@@ -79,10 +84,13 @@ class TournamentRestController {
     }
 
     // Keep Date or switch to String with date format
+    // Accepts ISO Date String (like "2025-12-25T15:00:00")
     @PostMapping("/match/update_date")
-    public ResponseEntity<String> updateMatchDate(@RequestParam String adminId,
-                                                  @RequestParam String matchId,
-                                                  @RequestParam String newMatchDate) {
+    public ResponseEntity<String> updateMatchDate(
+            @RequestParam String adminId,
+            @RequestParam String matchId,
+            // Automatically parses string -> LocalDateTime
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime newMatchDate) {
 
         tournamentService.updateMatchDate(adminId, matchId, newMatchDate);
 

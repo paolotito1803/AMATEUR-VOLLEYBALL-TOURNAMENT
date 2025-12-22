@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.time.LocalDateTime;
 
 @Entity // JPA: This is a table
 @Table(name = "match", schema = "tournament_module")
@@ -21,7 +22,7 @@ public class MatchEntity {
     private String tournament;
     private String stadium;
     private int freeSeats;
-    private String matchDate;
+    private LocalDateTime matchDate;
     private String referee;
     private int stage;
     private String teamA;
@@ -31,8 +32,8 @@ public class MatchEntity {
     private String winner;
     private String nextMatchId;
 
-    public MatchEntity(String tournament, String stadium, int freeSeats, String referee, String matchDate, int stage,
-                       String teamA, String teamB, int scoreA, int scoreB, String winner, String nextMatchId) {
+    public MatchEntity(String tournament, String stadium, int freeSeats, String referee, LocalDateTime matchDate,
+                       int stage, String teamA, String teamB, int scoreA, int scoreB, String winner, String nextMatchId) {
         this.matchId = UUID.randomUUID().toString();
         this.tournament = tournament;
         this.stadium = stadium;

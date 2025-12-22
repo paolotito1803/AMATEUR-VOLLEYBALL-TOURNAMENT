@@ -2,6 +2,7 @@ package org.example.amateurvolleyballtournament.tournament;
 
 import org.example.amateurvolleyballtournament.teams.TeamDTO;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,7 +15,7 @@ public interface TournamentService {
 
     void updateMatchReferee(String adminId, String matchId, String newReferee);
 
-    void updateMatchDate(String adminId, String matchId, String newDate);
+    void updateMatchDate(String adminId, String matchId, LocalDateTime newDate);
 
     void updateMatchWinner(String adminId, String matchId, String winner);
 
@@ -28,7 +29,7 @@ public interface TournamentService {
 
     String getMatchReferee(String matchId);
 
-    String getMatchDate(String matchId);
+    LocalDateTime getMatchDate(String matchId);
 
     Optional<MatchDTO> getMatchInformation(String matchId);
 

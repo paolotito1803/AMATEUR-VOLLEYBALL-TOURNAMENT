@@ -9,6 +9,7 @@ import org.example.amateurvolleyballtournament.users.UsersService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -43,12 +44,14 @@ class TournamentServiceImpl implements TournamentService {
     }
 
     @Override
-    public String getMatchDate(String matchId) {
+    public LocalDateTime getMatchDate(String matchId) {
         if(!tournamentPersistence.existsByMatchId(matchId)) {
             throw new IllegalStateException("Match with id " + matchId + " does not exist");
         }
 
-        return tournamentPersistence.getMatchDate(matchId).orElseThrow(()   -> new IllegalStateException("Date for match " + matchId + " does not exist"));
+        // 'LocalDateTime::toString' to make it as a string
+        return tournamentPersistence.getMatchDate(matchId)
+                .orElseThrow(() -> new IllegalStateException("Date for match " + matchId + " is not set yet."));
     }
 
     @Override
@@ -219,7 +222,7 @@ class TournamentServiceImpl implements TournamentService {
     }
 
     @Override
-    public void updateMatchDate(String adminId, String matchId, String newDate) {
+    public void updateMatchDate(String adminId, String matchId, LocalDateTime newDate) {
         if(!usersService.isAdmin(adminId)) {
             throw new IllegalArgumentException("User " + adminId + " is not authorized to update the match date.");
         }

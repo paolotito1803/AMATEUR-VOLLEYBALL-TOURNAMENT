@@ -19,6 +19,10 @@ public class TournamentEntity {
     private String tournamentId; // UUID
     private String tournamentName;
     private int maxTournamentTeams;
+    @ElementCollection // You can't just pass a java list, the db doesn't know what to do with it,
+    // so like this it makes its own table
+    @CollectionTable(name = "tournament_teams", joinColumns = @JoinColumn(name = "tournament_id"))
+    @Column(name = "team_id")
     private List<String> teams;
 
     @OneToMany(mappedBy = "tournament", cascade = CascadeType.ALL, orphanRemoval = true)
