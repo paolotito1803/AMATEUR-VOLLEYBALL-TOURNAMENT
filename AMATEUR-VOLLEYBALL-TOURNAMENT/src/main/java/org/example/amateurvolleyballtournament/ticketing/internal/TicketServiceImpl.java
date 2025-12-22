@@ -28,8 +28,8 @@ class TicketServiceImpl implements TicketService {
 
     @Override
     public void addTicket(int numSeat, String userId, String matchId) {
-        if(userId.isEmpty() || matchId.isEmpty() || numSeat <= 0)
-            throw new RuntimeException("userId, match and numSeat cannot be empty");
+        if(userId == null || userId.isEmpty() || matchId == null || matchId.isEmpty() || numSeat <= 0)
+            throw new IllegalArgumentException("userId, match and numSeat cannot be empty");
 
         // TODO: ISSUE #3, Race Condition here
         // First check if available seats
