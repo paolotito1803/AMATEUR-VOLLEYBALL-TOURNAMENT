@@ -26,6 +26,8 @@ class TeamServiceImpl implements TeamService {
     @Override
     public void registerTeam(String coachId, String coachName, String teamName) {
         // 1. Validate User Role (External Module call)
+        // TODO: The security checks should be by security context of the app, not an id passed in a request,
+        // the id here is still necessary for teams creating logic, so stays here, but not as security.
         if (!usersService.isCoach(coachId)) {
             throw new IllegalArgumentException("User " + coachId + " is not authorized to register a team (Not a Coach).");
         }
