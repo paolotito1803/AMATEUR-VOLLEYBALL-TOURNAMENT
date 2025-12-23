@@ -1,13 +1,11 @@
 package org.example.amateurvolleyballtournament.tournament.web;
-import org.example.amateurvolleyballtournament.teams.StadiumDTO;
-import org.example.amateurvolleyballtournament.teams.TeamDTO;
 import org.example.amateurvolleyballtournament.teams.TeamService;
 import org.example.amateurvolleyballtournament.tournament.*;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -27,8 +25,11 @@ class TournamentRestController {
         return tournamentService.getAllTournaments();
     }
 
+    //JSON Date (like "2025-12-25T15:00:00")
     @GetMapping("/match/date")
-    public String getMatchDate(@RequestParam("matchId") String matchId) { return tournamentService.getMatchDate(matchId); }
+    public LocalDateTime getMatchDate(@RequestParam("matchId") String matchId) {
+        return tournamentService.getMatchDate(matchId);
+    }
 
     @GetMapping("/match/referee")
     public String getMatchReferee(@RequestParam("matchId") String matchId) {return tournamentService.getMatchReferee(matchId); }
@@ -50,93 +51,85 @@ class TournamentRestController {
     }
 
     @PostMapping("/update_name")
-    public ResponseEntity<String> updateTournamentName(@RequestParam String adminId,
-                                                       @RequestParam String tournamentId,
-                                                       @RequestParam String tournamentName) {
-
-        tournamentService.updateTournamentName(adminId, tournamentId, tournamentName);
+    public ResponseEntity<String> updateTournamentName(@RequestBody TournamentRequests.UpdateTournamentNameRequest request) {
+        tournamentService.updateTournamentName(request.tournamentId(), request.tournamentName());
 
         return ResponseEntity.ok("Tournament updated successfully");
     }
 
     // UpdateTeams
     @PostMapping
-    public ResponseEntity<String> updateTeams(@RequestParam String adminId,
-                                              @RequestParam List<String> teams,
-                                              @RequestParam String tournamentId) {
-        tournamentService.updateTeams(adminId, teams, tournamentId);
+    public ResponseEntity<String> updateTeams(@RequestBody TournamentRequests.UpdateTeamsRequest request) {
+        tournamentService.updateTeams(request.teams(), request.tournamentId());
 
         return ResponseEntity.ok("Teams updated successfully.");
     }
 
     @PostMapping("/match/update_referee")
-    public ResponseEntity<String> updateMatchReferee(@RequestParam String adminId,
-                                                     @RequestParam String matchId,
-                                                     @RequestParam String newReferee) {
-        tournamentService.updateMatchReferee(adminId, matchId, newReferee);
+    public ResponseEntity<String> updateMatchReferee(@RequestBody TournamentRequests.UpdateRefereeRequest request) {
+        tournamentService.updateMatchReferee(request.matchId(), request.newReferee());
 
-        return ResponseEntity.ok("Referee " + newReferee + " for match " + matchId + "updated successfully.");
+        return ResponseEntity.ok("Referee " + request.newReferee() + " for match " + request.matchId() + "updated successfully.");
     }
 
     // Keep Date or switch to String with date format
+    // Accepts ISO Date String (like "2025-12-25T15:00:00")
     @PostMapping("/match/update_date")
-    public ResponseEntity<String> updateMatchDate(@RequestParam String adminId,
-                                                  @RequestParam String matchId,
-                                                  @RequestParam String newMatchDate) {
+    public ResponseEntity<String> updateMatchDate(@RequestBody TournamentRequests.UpdateDateRequest request) {
 
-        tournamentService.updateMatchDate(adminId, matchId, newMatchDate);
+        tournamentService.updateMatchDate(request.matchId(), request.newDate());
 
-        return ResponseEntity.ok("Match " + matchId + " updated successfully with date " + newMatchDate);
+        return ResponseEntity.ok("Match " + request.matchId() +
+                " updated successfully with date " + request.newDate());
     }
 
     @PostMapping("/match/update_free_seats")
-    public ResponseEntity<String> updateMatchFreeSeats(@RequestParam String adminId,
-                                                       @RequestParam String matchId,
-                                                       @RequestParam int newFreeSeats) {
-        tournamentService.updateMatchFreeSeats(adminId, matchId, newFreeSeats);
+    public ResponseEntity<String> updateMatchFreeSeats(@RequestBody TournamentRequests.UpdateFreeSeatsRequest request) {
+        tournamentService.updateMatchFreeSeats(request.matchId(), request.newFreeSeats());
 
-        return ResponseEntity.ok("Free seats for match " + matchId + "updated successfully to value " + newFreeSeats);
+        return ResponseEntity.ok("Free seats for match " + request.matchId() + "updated successfully to value "
+                + request.newFreeSeats());
     }
 
     @PostMapping("/match/update_statium")
-    public ResponseEntity<String> updateMatchStadium(@RequestParam String adminId,
-                                                     @RequestParam String matchId,
-                                                     @RequestParam String newStadium) {
-        tournamentService.updateMatchStadium(adminId, matchId, newStadium);
+    public ResponseEntity<String> updateMatchStadium(@RequestBody TournamentRequests.UpdateStadiumRequest request) {
+        tournamentService.updateMatchStadium(request.matchId(), request.newStadium());
         // TODO: update seats and date if stadium gets changed
-        return ResponseEntity.ok("Stadium " + newStadium + " updated successfully.");
+        return ResponseEntity.ok("Stadium " + request.newStadium() + " updated successfully.");
     }
 
     // Also automatically manage matches creation for first stage
     @PostMapping("/create_tournament")
-    public ResponseEntity<String> createTournament(@RequestParam String adminId,
-                                                        @RequestParam String tournamentName,
-                                                        @RequestParam int maxTournamentTeams,
-                                                        @RequestParam List<String> teams) {
-        tournamentService.createTournament(adminId, tournamentName, maxTournamentTeams, teams);
+    public ResponseEntity<String> createTournament(@RequestBody TournamentRequests.CreateTournamentRequest request) {
+        tournamentService.createTournament(
+                request.tournamentName(),
+                request.maxTournamentTeams(),
+                request.teams()
+        );
 
-        return ResponseEntity.ok("Tournament " + tournamentName + " created successfully.");
+        return ResponseEntity.ok("Tournament " + request.tournamentName() + " created successfully.");
     }
 
     @PostMapping("/match/create_match")
-    public ResponseEntity<String> createMatch(@RequestParam String adminId,
-                                              @RequestParam String tournamentId,
-                                              @RequestParam int stage,
-                                              @RequestParam String teamA,
-                                              @RequestParam String teamB) {
+    public ResponseEntity<String> createMatch(@RequestBody TournamentRequests.CreateMatchRequest request) {
+        tournamentService.createMatch(
+                request.tournamentId(),
+                request.stage(),
+                request.teamA(),
+                request.teamB()
+        );
 
-        tournamentService.createMatch(adminId, tournamentId, stage, teamA, teamB);
-
-        return ResponseEntity.ok("Match for tournament " + tournamentId + " created successfully.");
+        return ResponseEntity.ok("Match for tournament " + request.tournamentId() + " created successfully.");
     }
 
     // Update match winner and assign it to upper matches (or create a new stage)
     @PostMapping("/match/update_winner")
-    public ResponseEntity<String> updateMatchWinner(@RequestParam String adminId,
-                                                    @RequestParam String matchId,
-                                                    @RequestParam String winner) {
-        tournamentService.updateMatchWinner(adminId, matchId, winner);
+    public ResponseEntity<String> updateMatchWinner(@RequestBody TournamentRequests.UpdateWinnerRequest request) {
+        tournamentService.updateMatchWinner(
+                request.matchId(),
+                request.winner()
+        );
 
-        return ResponseEntity.ok("Match winner " + winner + " for match " + matchId + "  updated successfully.");
+        return ResponseEntity.ok("Match winner " + request.winner() + " for match " + request.matchId() + "  updated successfully.");
     }
 }

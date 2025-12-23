@@ -31,18 +31,16 @@ class TicketServiceImpl implements TicketService {
         if(userId == null || userId.isEmpty() || matchId == null || matchId.isEmpty() || numSeat <= 0)
             throw new IllegalArgumentException("userId, match and numSeat cannot be empty");
 
-        // TODO: ISSUE #3, Race Condition here
         // First check if available seats
         MatchDTO match = tournamentService.getMatchInformation(matchId)
                 .orElseThrow(() -> new IllegalArgumentException("Match not found"));
-        if (match.freeSeats() <= 0) {
+        boolean reserved = tournamentService.reserveSeat(match.matchId()); // this should fix race condition
+        if (!reserved) {
             throw new IllegalStateException("No seats available");
         }
 
         TicketEntity ticket = new TicketEntity(numSeat, matchId, userId);
         db.save(ticket);
-
-        tournamentService.updateMatchFreeSeats(userId, matchId, match.freeSeats() - 1);
     }
 
     @Override

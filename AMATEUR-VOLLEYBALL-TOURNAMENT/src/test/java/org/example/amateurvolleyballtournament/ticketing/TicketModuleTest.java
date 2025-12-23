@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,7 +32,7 @@ public class TicketModuleTest {
         String matchId = "match_" + UUID.randomUUID();
 
         // Mock the Tournament Service to say there are seats
-        MatchDTO mockMatch = new MatchDTO(matchId, "Stadium", 10, "2025-01-01", "Ref", 1, "A", "B", 0, 0, "", "");
+        MatchDTO mockMatch = new MatchDTO(matchId, "Stadium", 10, LocalDateTime.parse("2025-01-01"), "Ref", 1, "A", "B", 0, 0, "", "");
         when(tournamentService.getMatchInformation(matchId)).thenReturn(Optional.of(mockMatch));
 
         // Real TicketService action
@@ -57,7 +58,7 @@ public class TicketModuleTest {
         String matchId = "match_" + UUID.randomUUID();
 
         // Mock the Tournament Service to say 0 seats left
-        MatchDTO fullMatch = new MatchDTO(matchId, "Stadium", 0, "2025-01-01", "Ref", 1, "A", "B", 0, 0, "", "");
+        MatchDTO fullMatch = new MatchDTO(matchId, "Stadium", 0, LocalDateTime.parse("2025-01-01"), "Ref", 1, "A", "B", 0, 0, "", "");
         when(tournamentService.getMatchInformation(matchId)).thenReturn(Optional.of(fullMatch));
 
         // Real TicketService action

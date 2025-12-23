@@ -3,18 +3,17 @@ package org.example.amateurvolleyballtournament.tournament.internal;
 import org.springframework.stereotype.Component;
 
 import javax.swing.text.html.Option;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Component
 class TournamentPersistence {
-    private List<String> teams;
     private final TournamentRepository tournamentRepository;
     private final MatchRepository matchRepository;
 
-    TournamentPersistence(List<String> teams, TournamentRepository tournamentRepository, MatchRepository matchRepository) {
-        this.teams = teams;
+    TournamentPersistence(TournamentRepository tournamentRepository, MatchRepository matchRepository) {
         this.tournamentRepository = tournamentRepository;
         this.matchRepository = matchRepository;
     }
@@ -52,7 +51,7 @@ class TournamentPersistence {
         return Optional.ofNullable(matchEntity.getReferee());
     }
 
-    public Optional<String> getMatchDate(String matchId) {
+    public Optional<LocalDateTime> getMatchDate(String matchId) {
         MatchEntity matchEntity = this.getMatchOrThrow(matchId);
         return Optional.ofNullable(matchEntity.getMatchDate());
     }
@@ -156,8 +155,9 @@ class TournamentPersistence {
            return Optional.of(matchEntity);
     }
 
-    public Optional<MatchEntity> updateMatchDate(String matchId, String date) {
-        MatchEntity matchEntity = matchRepository.findById(matchId).orElseThrow(() -> new RuntimeException("Match with id " + matchId + " not found"));
+    public Optional<MatchEntity> updateMatchDate(String matchId, LocalDateTime date) {
+        MatchEntity matchEntity = matchRepository.findById(matchId)
+                .orElseThrow(() -> new RuntimeException("Match with id " + matchId + " not found"));
         matchEntity.setMatchDate(date);
 
         matchRepository.save(matchEntity);
@@ -205,7 +205,7 @@ class TournamentPersistence {
     }
 
     public void createMatch(String torunamentId, int stage, String teamA, String teamB) {
-        MatchEntity matchEntity = new MatchEntity(torunamentId, "", 0, "", "", stage, teamA, teamB, 0, 0, "", "");
+        MatchEntity matchEntity = new MatchEntity(torunamentId, "", 0, "", null, stage, teamA, teamB, 0, 0, "", "");
 
         matchRepository.save(matchEntity);
     }
