@@ -20,11 +20,13 @@ import java.util.Optional;
 class TournamentServiceImpl implements TournamentService {
     private final TeamService teamService;
     private final TournamentPersistence tournamentPersistence;
+    private final MatchRepository matchRepository;
     private final UsersService usersService;
 
-    public TournamentServiceImpl(TeamService teamService, TournamentPersistence tournamentPersistence, UsersService usersService) {
+    public TournamentServiceImpl(TeamService teamService, TournamentPersistence tournamentPersistence, MatchRepository matchRepository, UsersService usersService) {
         this.teamService = teamService;
         this.tournamentPersistence = tournamentPersistence;
+        this.matchRepository = matchRepository;
         this.usersService = usersService;
     }
 
@@ -259,5 +261,10 @@ class TournamentServiceImpl implements TournamentService {
     @Override
     public List<TeamDTO> getTeams() {
         return teamService.getAllTeams();
+    }
+
+    @Override
+    public boolean reserveSeat(String matchId) {
+        return matchRepository.decrementFreeSeatsIfAvailable(matchId) == 1; // I expect JUST one row updated
     }
 }

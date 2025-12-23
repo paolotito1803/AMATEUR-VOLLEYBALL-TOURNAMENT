@@ -42,4 +42,6 @@ public interface TournamentService {
 
     // Generate a match: assign team A, team B, stadium, free seats, date ...
     void createMatch(String tournamentId, int stage, String teamA, String teamB);
+
+    boolean reserveSeat(String matchId);
 }
