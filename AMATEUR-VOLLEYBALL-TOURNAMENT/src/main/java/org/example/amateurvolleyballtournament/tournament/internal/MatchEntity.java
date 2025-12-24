@@ -3,23 +3,23 @@ package org.example.amateurvolleyballtournament.tournament.internal;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.amateurvolleyballtournament.teams.TeamDTO;
-import org.example.amateurvolleyballtournament.teams.internal.*;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
-@Entity // JPA: This is a table
+@Entity
 @Table(name = "match", schema = "tournament_module")
-@Data // Lombok to Generates getters, setters, toString
+@Data
 @NoArgsConstructor
 public class MatchEntity {
-    @Id // JPA: Primary Key
-    private String matchId; // UUID
-    private String tournament;
+    @Id
+    private String matchId;
+
+    @Column(name = "tournament_id")
+    private String tournamentId;
+
+    @Column(name = "match_index")
+    private int matchIndex;
+
     private String stadium;
     private int freeSeats;
     private LocalDateTime matchDate;
@@ -32,15 +32,16 @@ public class MatchEntity {
     private String winner;
     private String nextMatchId;
 
-    public MatchEntity(String tournament, String stadium, int freeSeats, String referee, LocalDateTime matchDate,
-                       int stage, String teamA, String teamB, int scoreA, int scoreB, String winner, String nextMatchId) {
+    public MatchEntity(String tournamentId, String stadium, int freeSeats, String referee, LocalDateTime matchDate,
+                       int stage, int matchIndex, String teamA, String teamB, int scoreA, int scoreB, String winner, String nextMatchId) {
         this.matchId = UUID.randomUUID().toString();
-        this.tournament = tournament;
+        this.tournamentId = tournamentId;
         this.stadium = stadium;
         this.freeSeats = freeSeats;
         this.matchDate  = matchDate;
         this.referee = referee;
         this.stage = stage;
+        this.matchIndex = matchIndex;
         this.teamA = teamA;
         this.teamB = teamB;
         this.scoreA = scoreA;

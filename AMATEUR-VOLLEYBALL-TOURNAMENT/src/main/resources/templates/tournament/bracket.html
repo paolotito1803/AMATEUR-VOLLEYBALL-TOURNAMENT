@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Tournament Bracket</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .bracket-container {
+            display: flex;
+            flex-direction: row;
+            overflow-x: auto;
+            gap: 20px;
+            padding: 20px;
+        }
+        .stage-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            min-width: 250px;
+            border-right: 1px dashed #ccc;
+            padding-right: 20px;
+        }
+        .match-card {
+            border: 1px solid #333;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            background-color: white;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        }
+        .team-row {
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            transition: background 0.2s;
+            position: relative; /* Ensure z-index works */
+            z-index: 10;
+        }
+        .team-row:hover {
+            background-color: #e2e6ea; /* Light gray hover */
+        }
+
+        /* --- STATE CLASSES --- */
+
+        /* 1. Winner: Green */
+        .team-row.winner {
+            background-color: #d4edda !important;
+            color: #155724;
+            font-weight: bold;
+        }
+
+        /* 2. Waiting: Yellow & Unclickable */
+        .team-row.waiting {
+            background-color: #fff3cd !important;
+            color: #856404;
+            font-style: italic;
+            pointer-events: none;
+        }
+
+        /* 3. Locked: Match finished & Unclickable (Applies to Winner AND Loser) */
+        .team-row.locked {
+            pointer-events: none !important;
+            opacity: 0.8;
+        }
+
+        /* Visual adjustments for badges */
+        .badge-bye {
+            background-color: #6c757d;
+            color: white;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+<div class="container-fluid">
+    <div class="row mt-3 mb-3">
+        <div class="col">
+            <h2 th:text="${tournament.tournamentName}">Tournament Name</h2>
+            <a href="/tournament/manager" class="btn btn-secondary btn-sm">Back to List</a>
+        </div>
+    </div>
+
+    <!-- THE BRACKET UI -->
+    <div class="bracket-container">
+        <!-- Loop through Stages -->
+        <div th:each="stageEntry : ${matchesByStage}" class="stage-column">
+            <h4 class="text-center" th:text="'Round ' + ${stageEntry.key}">Round 1</h4>
+
+            <!-- Loop through Matches -->
+            <div th:each="match : ${stageEntry.value}"
+                 class="match-card"
+                 th:if="${match.teamA != 'BYE' or match.teamB != 'BYE'}"
+
+                 th:with="isMatchReady=${(match.teamA != null and match.teamA != '') and (match.teamB != null and match.teamB != '')},
+                          hasWinner=${match.winner != null and match.winner != ''}">
+
+                <div class="card-header p-1 text-center small text-muted">
+                    <span th:text="${match.matchIndex}">1</span>
+                </div>
+
+                <!-- TEAM A -->
+                <div class="team-row"
+                     th:classappend="${(match.teamA == null or match.teamA == '') ? 'waiting' : ''} + ' ' +
+                                      ${(match.winner == match.teamA) ? 'winner' : ''} + ' ' +
+                                      ${(hasWinner or !isMatchReady) ? 'locked' : ''}"
+                     th:data-id="${match.matchId}"
+                     th:data-team="${match.teamA}"
+                     onclick="setWinner(this.getAttribute('data-id'), this.getAttribute('data-team'))">
+
+                    <span th:text="${match.teamA != null and match.teamA != '' ? match.teamA : 'Waiting...'}">Team A</span>
+                    <span th:if="${match.teamA == 'BYE'}" class="badge badge-bye">BYE</span>
+                </div>
+
+                <div class="border-top"></div>
+
+                <!-- TEAM B -->
+                <div class="team-row"
+                     th:classappend="${(match.teamB == null or match.teamB == '') ? 'waiting' : ''} + ' ' +
+                                      ${(match.winner == match.teamB) ? 'winner' : ''} + ' ' +
+                                      ${(hasWinner or !isMatchReady) ? 'locked' : ''}"
+                     th:data-id="${match.matchId}"
+                     th:data-team="${match.teamB}"
+                     onclick="setWinner(this.getAttribute('data-id'), this.getAttribute('data-team'))">
+
+                    <span th:text="${match.teamB != null and match.teamB != '' ? match.teamB : 'Waiting...'}">Team B</span>
+                    <span th:if="${match.teamB == 'BYE'}" class="badge badge-bye">BYE</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function setWinner(matchId, teamName) {
+        console.log("Clicked:", matchId, teamName); // DEBUG LOG
+
+        if (!teamName || teamName === 'Waiting...' || teamName === 'null' || teamName === '') {
+            console.log("Ignored: Empty slot");
+            return;
+        }
+
+        if (!confirm("Declare " + teamName + " as the winner?")) return;
+
+        const requestBody = {
+            matchId: matchId,
+            winner: teamName
+        };
+
+        fetch('/api/tournaments/match/update_winner', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+            })
+            .catch(error => alert("Error: " + error.message));
+    }
+</script>
+
+</body>
+</html>

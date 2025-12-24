@@ -7,7 +7,7 @@ public class TournamentRequests {
 
     private TournamentRequests() {}
 
-    public record CreateTournamentRequest(String tournamentName, int maxTournamentTeams, List<String> teams) {}
+    public record CreateTournamentRequest(String tournamentName, List<String> teams) {}
 
     public record CreateMatchRequest(String tournamentId, int stage, String teamA, String teamB) {}
 

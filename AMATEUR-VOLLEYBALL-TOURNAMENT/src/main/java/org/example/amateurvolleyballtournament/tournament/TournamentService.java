@@ -8,8 +8,9 @@ import java.util.Optional;
 
 public interface TournamentService {
 
-    // Tournament creation
     List<TournamentDTO> getAllTournaments();
+
+    Optional<TournamentDTO> getTournamentDetails(String tournamentId);
 
     void updateTeams(List<String> teams, String tournamentId);
 
@@ -38,10 +39,12 @@ public interface TournamentService {
     Optional<MatchDTO> getNextMatch(String matchId);
 
     // Check parameters for creation, fetch matches and teams and manage first stage of tournament
-    void createTournament(String tournamentName, int maxTournamentTeams, List<String> teams);
+    void createTournament(String tournamentName, List<String> teams);
 
     // Generate a match: assign team A, team B, stadium, free seats, date ...
     void createMatch(String tournamentId, int stage, String teamA, String teamB);
+
+    void deleteTournament(String tournamentId);
 
     boolean reserveSeat(String matchId);
 }

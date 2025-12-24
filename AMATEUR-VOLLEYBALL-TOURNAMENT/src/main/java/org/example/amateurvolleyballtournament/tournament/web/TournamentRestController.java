@@ -103,7 +103,6 @@ class TournamentRestController {
     public ResponseEntity<String> createTournament(@RequestBody TournamentRequests.CreateTournamentRequest request) {
         tournamentService.createTournament(
                 request.tournamentName(),
-                request.maxTournamentTeams(),
                 request.teams()
         );
 
@@ -131,5 +130,12 @@ class TournamentRestController {
         );
 
         return ResponseEntity.ok("Match winner " + request.winner() + " for match " + request.matchId() + "  updated successfully.");
+    }
+
+    @DeleteMapping("/delete/{tournamentId}")
+    public ResponseEntity<String> deleteTournament(@PathVariable String tournamentId) {
+        tournamentService.deleteTournament(tournamentId);
+
+        return ResponseEntity.ok("Tournament deleted successfully.");
     }
 }

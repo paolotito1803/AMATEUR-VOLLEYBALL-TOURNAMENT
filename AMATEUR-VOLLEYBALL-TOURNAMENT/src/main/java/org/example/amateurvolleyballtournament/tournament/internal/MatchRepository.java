@@ -4,18 +4,19 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface MatchRepository extends JpaRepository<MatchEntity, String> {
-    // TODO: non so se può essere utile. Nel caso va fatto un refactoring di Entity e DTO per inserirlo
-    // List<MatchEntity> findByTournamentId(String tournamentId);
-    Optional<MatchEntity> findById(String matchId);
 
-    boolean existsById(String matchId);
+    List<MatchEntity> findByTournamentId(String tournamentId);
+
+    List<MatchEntity> findByTournamentIdAndStage(String tournamentId, int stage);
+
+    // Find the highest stage number for when tournament ends
+    @Query("SELECT COALESCE(MAX(m.stage), 0) FROM MatchEntity m WHERE m.tournamentId = :tournamentId")
+    int findMaxStageByTournamentId(String tournamentId);
+
     @Modifying
     @Query("""
         UPDATE MatchEntity m
@@ -23,16 +24,4 @@ public interface MatchRepository extends JpaRepository<MatchEntity, String> {
         WHERE m.matchId = :matchId AND m.freeSeats > 0
     """)
     int decrementFreeSeatsIfAvailable(String matchId);
-//    Optional<MatchEntity> findbyStadiumName(String stadiumName);
-//
-//    Optional<MatchEntity> findbyMatchDate(Date matchDate);
-//
-//    Optional<MatchEntity> findbyMatchId(int matchId);
-//
-//    Optional<MatchEntity> findbyMatchReferee(String referee);
-//
-//    boolean existsByStadiumName(String stadiumName);
-//    boolean existsByMatchDate(Date matchDate);
-//    boolean existsByMatchId(int matchId);
-//    boolean existsByMatchReferee(String referee);
 }
