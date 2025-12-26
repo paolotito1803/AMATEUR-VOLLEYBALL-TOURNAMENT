@@ -24,11 +24,7 @@ class TeamWebController {
     // URL: http://localhost:8080/teams/manager
     @GetMapping("/manager")
     public String showManagerPage(Model model) {
-        // TO DO: UPDATE THIS WITH PROPER AUTHORIZATION LOGIC
-        if (!usersService.isAdmin("admin")) {
-            return "redirect:/";
-        }
-
+        // TODO: ADD PROPER AUTHORIZATION LOGIC
         model.addAttribute("teams", teamService.getAllTeams());
 
         return "teams/manager";

@@ -182,6 +182,15 @@ class TournamentServiceImpl implements TournamentService {
             throw new IllegalArgumentException("Duplicate teams are not allowed.");
         }
 
+        List<String> validTeamNames = teamService.getAllTeams().stream()
+                .map(TeamDTO::name)
+                .toList();
+        for (String inputTeam : teams) {
+            if (!validTeamNames.contains(inputTeam)) {
+                throw new IllegalArgumentException("Team '" + inputTeam + "' does not exist in the Teams database.");
+            }
+        }
+
         // Handle not power of 2 teams
         List<String> tournamentTeams = new ArrayList<>(teams);
 

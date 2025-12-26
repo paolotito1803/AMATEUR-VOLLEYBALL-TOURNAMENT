@@ -30,6 +30,8 @@ class TournamentWebController {
     @GetMapping("/manager")
     public String showManager(Model model) {
         model.addAttribute("tournaments", tournamentService.getAllTournaments());
+        model.addAttribute("allTeams", teamService.getAllTeams());
+
         return "tournament/manager";
     }
 
