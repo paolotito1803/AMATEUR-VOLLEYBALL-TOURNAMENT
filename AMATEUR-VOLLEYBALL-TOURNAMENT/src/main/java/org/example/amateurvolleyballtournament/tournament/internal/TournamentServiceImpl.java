@@ -101,6 +101,13 @@ class TournamentServiceImpl implements TournamentService {
     }
 
     @Override
+    public Optional<TournamentDTO> getTournamentByName(String name) {
+        Optional<String> tournamentId = tournamentPersistence.getTournamentIdByName(name);
+
+        return tournamentId.flatMap(this::getTournamentDetails);
+    }
+
+    @Override
     public String getMatchReferee(String matchId) {
         if(!tournamentPersistence.existsByMatchId(matchId)) {
             throw new IllegalStateException("Match with id " + matchId + " does not exist");
