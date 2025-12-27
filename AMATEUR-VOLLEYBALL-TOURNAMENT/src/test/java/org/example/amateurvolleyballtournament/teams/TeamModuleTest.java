@@ -79,7 +79,7 @@ class TeamModuleTest {
     void shouldRejectDuplicateTeamNames() {
         String coach1 = "coach_A_" + UUID.randomUUID();
         String coach2 = "coach_B_" + UUID.randomUUID();
-        String sharedTeamName = "The Unique Team";
+        String sharedTeamName = "Unique Team " + UUID.randomUUID();
 
         // Both are valid coaches
         when(usersService.isCoach(anyString())).thenReturn(true);

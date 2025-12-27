@@ -37,11 +37,13 @@ class TeamRestController {
 
     // POST http://localhost:8080/api/teams/register
     @PostMapping("/register")
-    public ResponseEntity<String> registerTeam(@RequestParam String coachId,
-                                               @RequestParam String coachName,
-                                               @RequestParam String teamName) {
+    public ResponseEntity<String> registerTeam(@RequestBody RegisterTeamRequest request) {
         // If this throws an exception, the GlobalExceptionHandler catches it
-        teamService.registerTeam(coachId, coachName, teamName);
+        teamService.registerTeam(
+                request.coachId(),
+                request.coachName(),
+                request.teamName()
+        );
 
         return ResponseEntity.ok("Team registered successfully");
     }
