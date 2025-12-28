@@ -1,6 +1,7 @@
 package org.example.amateurvolleyballtournament.tournament.internal;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.swing.text.html.Option;
 import java.time.LocalDateTime;
@@ -32,6 +33,14 @@ class TournamentPersistence {
         return matchRepository.findById(matchId);
     }
 
+    public Optional<TournamentEntity> findById(String id) {
+        return tournamentRepository.findById(id);
+    }
+
+    public List<MatchEntity> getMatchesByTournament(String tournamentId) {
+        return matchRepository.findByTournamentId(tournamentId);
+    }
+
     public int getMaxTournamentTeams(String tournamentId) {
         TournamentEntity tournamentEntity = tournamentRepository.findById(tournamentId)
                 .orElseThrow(() -> new RuntimeException("Tournament with id " + tournamentId + " not found."));
@@ -46,26 +55,8 @@ class TournamentPersistence {
         return Optional.ofNullable(tournamentEntity.getTournamentId());
     }
 
-    public Optional<String> getMatchReferee(String matchId) {
-        MatchEntity matchEntity = this.getMatchOrThrow(matchId);
-        return Optional.ofNullable(matchEntity.getReferee());
-    }
-
-    public Optional<LocalDateTime> getMatchDate(String matchId) {
-        MatchEntity matchEntity = this.getMatchOrThrow(matchId);
-        return Optional.ofNullable(matchEntity.getMatchDate());
-    }
-
-    public Optional<String> getNextMatch(String matchId) {
-        MatchEntity matchEntity = matchRepository.findById(matchId).orElseThrow(() -> new RuntimeException("Match with id " +  matchId + " not found"));
-
-        return Optional.ofNullable(matchEntity.getNextMatchId());
-    }
-
-    public Optional<String> getMatchWinner(String matchId) {
-        MatchEntity matchEntity = matchRepository.findById(matchId).orElseThrow(() -> new RuntimeException("Match with id " + matchId + " not found"));
-
-        return Optional.ofNullable(matchEntity.getWinner());
+    public MatchEntity getMatchOrThrow(String matchId) {
+        return matchRepository.findById(matchId).orElseThrow(() -> new RuntimeException("Match with id " + matchId + " not found"));
     }
 
     public Optional<List<String>> getMatchTeams(String matchId) {
@@ -79,71 +70,50 @@ class TournamentPersistence {
         return Optional.of(teamList);
     }
 
-    public String getTournamentIdByMatchId(String matchId) {
-        MatchEntity matchEntity = matchRepository.findById(matchId).orElseThrow(
-                () -> new RuntimeException("Match with id " + matchId + " not found.")
-        );
-
-        return matchEntity.getTournament();
-    }
-
-    public int getMatchStage(String matchId) {
-        MatchEntity matchEntity = matchRepository.findById(matchId).orElseThrow(
-                () -> new RuntimeException("Match with id " + matchId + " not found.")
-        );
-
-        return matchEntity.getStage();
-    }
-
     public int getMatchesMaxStage(String tournamentId) {
-        TournamentEntity tournamentEntity = tournamentRepository.findById(tournamentId).orElseThrow(
-                () -> new RuntimeException("Tournament with id " + tournamentId + " not found")
-        );
-
-        int maxStage = 0;
-
-        List<MatchEntity> matchList = tournamentEntity.getMatches();
-        for(MatchEntity matchEntity : matchList) {
-            if(matchEntity.getStage() > maxStage) {
-                maxStage = matchEntity.getStage();
-            }
+        if (!tournamentRepository.existsById(tournamentId)) {
+            throw new RuntimeException("Tournament " + tournamentId + " not found");
         }
-
-        return maxStage;
+        return matchRepository.findMaxStageByTournamentId(tournamentId);
     }
 
-    public Optional<List<MatchEntity>> getMatchesInTournamentStage(String tournamentId, int stage) {
-        TournamentEntity tournamentEntity = tournamentRepository.findById(tournamentId).orElseThrow(
-                () -> new RuntimeException("Tournament with id " + tournamentId + " not found")
-        );
-
-        List<MatchEntity> matchList = tournamentEntity.getMatches();
-
-        List<MatchEntity> matchListInStage = new ArrayList<>();
-
-        for(MatchEntity matchEntity : matchList) {
-            if(matchEntity.getStage() == stage) {
-                matchListInStage.add(matchEntity);
-            }
+    public List<MatchEntity> getMatchesInTournamentStage(String tournamentId, int stage) {
+        if (!tournamentRepository.existsById(tournamentId)) {
+            throw new RuntimeException("Tournament " + tournamentId + " not found");
         }
+        return matchRepository.findByTournamentIdAndStage(tournamentId, stage);
+    }
 
-        return Optional.of(matchListInStage);
+    public Optional<String> getMatchReferee(String matchId) {
+        return matchRepository.findById(matchId).map(MatchEntity::getReferee);
+    }
+    public Optional<LocalDateTime> getMatchDate(String matchId) {
+        return matchRepository.findById(matchId).map(MatchEntity::getMatchDate);
+    }
+    public Optional<String> getMatchWinner(String matchId) {
+        return matchRepository.findById(matchId).map(MatchEntity::getWinner);
+    }
+    public Optional<String> getNextMatch(String matchId) {
+        return matchRepository.findById(matchId).map(MatchEntity::getNextMatchId);
+    }
+    public String getTournamentIdByMatchId(String matchId) {
+        return getMatchOrThrow(matchId).getTournamentId();
+    }
+    public int getMatchStage(String matchId) {
+        return getMatchOrThrow(matchId).getStage();
     }
 
     public void updateMatchWinner(String matchId, String winner) {
-        MatchEntity matchEntity = matchRepository.findById(matchId)
-                .orElseThrow(() -> new RuntimeException("Match with id " + matchId + " not found."));
-
-        matchEntity.setWinner(winner);
+        MatchEntity match = getMatchOrThrow(matchId);
+        match.setWinner(winner);
+        matchRepository.save(match);
     }
 
-    public Optional<TournamentEntity> updateTeams(List<String> teamsId, String tournamentId) {
-        TournamentEntity tournamentEntity = tournamentRepository.findById(tournamentId).orElseThrow(() -> new RuntimeException("Tournament with id " + tournamentId + " not found"));
-        tournamentEntity.setTeams(teamsId);
-
-        tournamentRepository.save(tournamentEntity);
-
-        return Optional.of(tournamentEntity);
+    public void updateTeams(List<String> teams, String tournamentId) {
+        TournamentEntity entity = tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new RuntimeException("Tournament not found"));
+        entity.setTeams(teams);
+        tournamentRepository.save(entity);
     }
 
     public Optional<MatchEntity> updateReferee(String matchId, String referee) {
@@ -189,13 +159,18 @@ class TournamentPersistence {
         matchRepository.save(matchEntity);
     }
 
-    public void updateTournamentName(String tournamentId, String tournamentName) {
-        TournamentEntity tournamentEntity = tournamentRepository.findById(tournamentId).orElseThrow(
-                () -> new RuntimeException("Tournament with id " + tournamentId + " not found")
-        );
+    public void updateMatchTeams(String matchId, String teamA, String teamB) {
+        MatchEntity match = getMatchOrThrow(matchId);
+        match.setTeamA(teamA);
+        match.setTeamB(teamB);
+        matchRepository.save(match);
+    }
 
-        tournamentEntity.setTournamentName(tournamentName);
-        tournamentRepository.save(tournamentEntity);
+    public void updateTournamentName(String tournamentId, String tournamentName) {
+        TournamentEntity entity = tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new RuntimeException("Tournament not found"));
+        entity.setTournamentName(tournamentName);
+        tournamentRepository.save(entity);
     }
 
     public void createTournament(String tournamentName, int maxTournamentTeams, List<String> teams) {
@@ -204,10 +179,16 @@ class TournamentPersistence {
         tournamentRepository.save(tournamentEntity);
     }
 
-    public void createMatch(String torunamentId, int stage, String teamA, String teamB) {
-        MatchEntity matchEntity = new MatchEntity(torunamentId, "", 0, "", null, stage, teamA, teamB, 0, 0, "", "");
+    public MatchEntity createMatch(String tournamentId, int stage, int matchIndex, String teamA, String teamB) {
+        // null for the date, I assume it should be added later
+        MatchEntity matchEntity = new MatchEntity(
+                tournamentId, "", 0, "", null, stage, matchIndex, teamA, teamB, 0, 0, "", ""
+        );
+        return matchRepository.save(matchEntity);
+    }
 
-        matchRepository.save(matchEntity);
+    public void saveMatch(MatchEntity match) {
+        matchRepository.save(match);
     }
 
     public boolean existsByTournamentId(String tournamentId) {
@@ -218,7 +199,12 @@ class TournamentPersistence {
         return matchRepository.existsById(matchId);
     }
 
-    public MatchEntity getMatchOrThrow(String matchId) {
-       return matchRepository.findById(matchId).orElseThrow(() -> new RuntimeException("Match with id " + matchId + " not found"));
+    @Transactional
+    public void deleteTournament(String tournamentId) {
+        // Delete all matches associated with this tournament as they aren't connected with JPA
+        List<MatchEntity> matches = matchRepository.findByTournamentId(tournamentId);
+        matchRepository.deleteAll(matches);
+
+        tournamentRepository.deleteById(tournamentId);
     }
 }

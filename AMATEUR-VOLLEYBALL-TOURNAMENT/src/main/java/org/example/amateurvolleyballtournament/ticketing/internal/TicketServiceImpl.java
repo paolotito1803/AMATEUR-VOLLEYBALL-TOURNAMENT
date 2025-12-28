@@ -63,6 +63,9 @@ class TicketServiceImpl implements TicketService {
     }
 
     private TicketDTO toDTO(TicketEntity entity) {
-        return new TicketDTO(entity.getId(), entity.getNumSeat(), entity.getMatch(), entity.getUserId());
+        MatchDTO m = tournamentService.getMatchInformation(entity.getMatch())
+                .orElseThrow(() -> new IllegalArgumentException("Match not found"));
+        return new TicketDTO(entity.getId(), entity.getNumSeat(), m.matchDate(), entity.getMatch(), entity.getUserId());
+
     }
 }

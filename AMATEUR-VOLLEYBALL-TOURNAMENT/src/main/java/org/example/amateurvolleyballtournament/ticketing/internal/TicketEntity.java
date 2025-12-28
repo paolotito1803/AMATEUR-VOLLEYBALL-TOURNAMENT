@@ -14,7 +14,6 @@ public class TicketEntity {
     @Id
     private String id;
     private int numSeat;
-
     private String match;
     private String userId;
 

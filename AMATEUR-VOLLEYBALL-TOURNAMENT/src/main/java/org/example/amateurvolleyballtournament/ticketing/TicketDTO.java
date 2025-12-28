@@ -1,4 +1,6 @@
 package org.example.amateurvolleyballtournament.ticketing;
 
-public record TicketDTO(String id, int numSeat, String match, String userId) {
+import java.time.LocalDateTime;
+
+public record TicketDTO(String id, int numSeat, LocalDateTime date, String match, String userId) {
 }
