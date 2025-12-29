@@ -1,8 +1,6 @@
 package org.example.amateurvolleyballtournament.users.web;
 
-import org.example.amateurvolleyballtournament.users.InputUserDTO;
-import org.example.amateurvolleyballtournament.users.UserDTO;
-import org.example.amateurvolleyballtournament.users.UsersService;
+import org.example.amateurvolleyballtournament.users.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +34,18 @@ class UsersRestController {
         }
     }
 
+    //LOGIN
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequestDTO user) {
+        //verify the tolen validity
+        try {
+            LoginDTO response = usersService.login(user.email(), user.password());
+            return ResponseEntity.ok(response);
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+        }
+    }
+
     // DELETE reset all users (dev tool)
     @DeleteMapping("/reset")
     public ResponseEntity<String> resetUsers() {
@@ -47,9 +57,9 @@ class UsersRestController {
     @PostMapping("/seed")
     public ResponseEntity<String> seedUsers() {
         try {
-            usersService.createUser(new InputUserDTO("coach_mario", "Mario", "Rossi", "pwd", "mario@mail.com", "COACH", ""));
-            usersService.createUser(new InputUserDTO("ref_luigi", "Luigi", "Verdi", "pwd", "luigi@mail.com", "REFEREE", ""));
-            usersService.createUser(new InputUserDTO("viewer_peach", "Peach", "Princess", "pwd", "peach@mail.com", "VIEWER", ""));
+            usersService.createUser(new InputUserDTO("coach_mario", "Mario", "Rossi", "pwd", "mario@mail.com", "COACH"));
+            usersService.createUser(new InputUserDTO("ref_luigi", "Luigi", "Verdi", "pwd", "luigi@mail.com", "REFEREE"));
+            usersService.createUser(new InputUserDTO("viewer_peach", "Peach", "Princess", "pwd", "peach@mail.com", "VIEWER"));
             return ResponseEntity.ok("Sample users created successfully!");
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error seeding users: " + e.getMessage());
