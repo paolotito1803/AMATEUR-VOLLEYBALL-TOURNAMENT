@@ -1,5 +1,7 @@
 package org.example.amateurvolleyballtournament.tournament.internal;
 
+import org.example.amateurvolleyballtournament.teams.PlayerDTO;
+import org.example.amateurvolleyballtournament.teams.StadiumDTO;
 import org.example.amateurvolleyballtournament.teams.TeamDTO;
 import org.example.amateurvolleyballtournament.teams.TeamService;
 import org.example.amateurvolleyballtournament.tournament.MatchDTO;
@@ -49,13 +51,25 @@ class TournamentServiceImpl implements TournamentService {
         List<TournamentEntity> entities = (List<TournamentEntity>) tournamentPersistence.findAll();
 
         return entities.stream()
-                .map(e -> new TournamentDTO(
-                        e.getTournamentId(),
-                        e.getTournamentName(),
-                        new ArrayList<>(),  // TODO: Empty Matches DTOs for now
-                        new ArrayList<>()  // TODO: Empty Teams DTOs for now
-                ))
+                .map(this::toTournamentDTO)
                 .toList();
+    }
+
+    public List<MatchDTO> getTournamentMatches(String tournamentId) {
+        return tournamentPersistence.getMatchesByTournament(tournamentId).stream().map(this::toMatchDTO).toList();
+    }
+
+    public List<TeamDTO> getTournamentTeams(String tournamentId) {
+        TournamentEntity entity = tournamentPersistence.findById(tournamentId)
+                .orElseThrow(() ->  new RuntimeException("Tournament with id " + tournamentId + " not found."));
+
+        List<String> teamList = entity.getTeams();
+        List<TeamDTO> teamDTOList = new ArrayList<>();
+        teamList.forEach(team -> {
+            teamService.getTeam(team).ifPresent(teamDTOList::add);
+        });
+
+        return teamDTOList;
     }
 
     private MatchDTO toMatchDTO(MatchEntity m) {
@@ -84,20 +98,7 @@ class TournamentServiceImpl implements TournamentService {
             return Optional.empty();
         }
 
-        TournamentEntity entity = tournamentOpt.get();
-
-        List<MatchEntity> matches = tournamentPersistence.getMatchesByTournament(tournamentId);
-
-        List<MatchDTO> matchDTOs = matches.stream()
-                .map(this::toMatchDTO)
-                .toList();
-
-        return Optional.of(new TournamentDTO(
-                entity.getTournamentId(),
-                entity.getTournamentName(),
-                matchDTOs,
-                new ArrayList<>() // TODO: Empty teams list for now
-        ));
+        return tournamentOpt.map(this::toTournamentDTO);
     }
 
     @Override
@@ -459,5 +460,40 @@ class TournamentServiceImpl implements TournamentService {
     @Override
     public boolean reserveSeat(String matchId) {
         return matchRepository.decrementFreeSeatsIfAvailable(matchId) == 1; // I expect JUST one row updated
+    }
+//
+//    // Converts Internal Entity -> Public DTO
+//    private TeamDTO toDTO(TeamEntity entity) {
+//        // Handle Null Stadium safely
+//        StadiumDTO stadiumDTO = null;
+//        if (entity.getStadium() != null) {
+//            stadiumDTO = new StadiumDTO(
+//                    entity.getStadium().getStadiumName(),
+//                    entity.getStadium().getStadiumCapacity()
+//            );
+//        }
+//
+//        // Convert List<PlayerEntity> to List<PlayerDTO>
+//        List<PlayerDTO> playerDTOs = entity.getPlayers().stream()
+//                .map(p -> new PlayerDTO(p.getName(), p.getNumber(), p.getRole()))
+//                .toList();
+//
+//        return new TeamDTO(
+//                entity.getId(),
+//                entity.getCoachId(),
+//                entity.getName(),
+//                entity.getCoachName(),
+//                playerDTOs,
+//                stadiumDTO
+//        );
+//    }
+
+    private TournamentDTO toTournamentDTO(TournamentEntity tournamentEntity) {
+        return new TournamentDTO(
+                tournamentEntity.getTournamentId(),
+                tournamentEntity.getTournamentName(),
+                getTournamentMatches(tournamentEntity.getTournamentId()),
+                getTournamentTeams(tournamentEntity.getTournamentId())
+        );
     }
 }

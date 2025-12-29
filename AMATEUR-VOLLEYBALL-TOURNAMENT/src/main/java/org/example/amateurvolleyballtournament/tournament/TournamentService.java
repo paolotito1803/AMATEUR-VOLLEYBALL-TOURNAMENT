@@ -14,6 +14,8 @@ public interface TournamentService {
 
     Optional<TournamentDTO> getTournamentByName(String name);
 
+    List<MatchDTO> getTournamentMatches(String tournamentId);
+
     void updateTeams(List<String> teams, String tournamentId);
 
     void updateMatchReferee(String matchId, String newReferee);
