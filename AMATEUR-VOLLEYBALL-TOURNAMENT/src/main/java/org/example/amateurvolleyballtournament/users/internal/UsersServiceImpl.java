@@ -33,8 +33,8 @@ public class UsersServiceImpl implements UsersService {
         UserEntity userEntity = new UserEntity(UUID.randomUUID().toString(),
                 user.username(),
                 user.surname(),
-                user.email(),
                 encryptedPwd,
+                user.email(),
                 user.role(),
                 true);
         //db save

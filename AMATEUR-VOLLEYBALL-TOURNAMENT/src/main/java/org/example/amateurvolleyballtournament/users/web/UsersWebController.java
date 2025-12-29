@@ -31,6 +31,6 @@ class UsersWebController {
 
     @GetMapping("/registration")
     public String showRegistrationPage(Model model) {
-        return "users/register";
+        return "users/registrer";
     }
 }

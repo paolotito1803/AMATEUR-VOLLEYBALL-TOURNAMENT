@@ -30,8 +30,8 @@ class TicketRestController {
     }
 
     @GetMapping
-    public List<TicketDTO> getTicketsUser(String user_id) {
-        return ticketService.getAllTicketsByUserId(user_id);
+    public List<TicketDTO> getTicketsUser(String userId) {
+        return ticketService.getAllTicketsByUserId(userId);
     }
 
     @GetMapping("/match/seats")
@@ -50,7 +50,7 @@ class TicketRestController {
     // POST http://localhost:8080/api/tickets/seed
     @PostMapping("/seed")
     public ResponseEntity<?> seedData() {
-        // TO DO: UPDATE THIS WITH PROPER AUTHORIZATION LOGIC
+        // TODO: UPDATE THIS WITH PROPER AUTHORIZATION LOGIC
 
         try {
             // Check if data exists to avoid duplicates/errors
@@ -72,12 +72,12 @@ class TicketRestController {
     // DELETE http://localhost:8080/api/teams/reset
     @DeleteMapping("/reset")
     public ResponseEntity<?> resetData() {
-        // TO DO: UPDATE THIS WITH PROPER AUTHORIZATION LOGIC
+        // TODO: UPDATE THIS WITH PROPER AUTHORIZATION LOGIC
         /*if (!usersService.isAdmin("admin")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ACCESS DENIED: Only Admins can reset the database.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("ACCESS DENIED: Only Admins can reset the database.");
         }*/
 
         ticketService.deleteAllTickets();
-        return ResponseEntity.ok("All teams, players, and stadiums deleted.");
+        return ResponseEntity.ok("All tickets have been deleted.");
     }
 }

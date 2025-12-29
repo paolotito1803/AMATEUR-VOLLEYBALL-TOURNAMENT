@@ -1,11 +1,10 @@
 package org.example.amateurvolleyballtournament.ticketing.internal;
 
-
-
 import org.example.amateurvolleyballtournament.ticketing.TicketDTO;
 import org.example.amateurvolleyballtournament.ticketing.TicketService;
 import org.example.amateurvolleyballtournament.tournament.MatchDTO;
 import org.example.amateurvolleyballtournament.tournament.TournamentService;
+import org.example.amateurvolleyballtournament.users.UserDTO;
 import org.example.amateurvolleyballtournament.users.UsersService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,7 +64,6 @@ class TicketServiceImpl implements TicketService {
     private TicketDTO toDTO(TicketEntity entity) {
         MatchDTO m = tournamentService.getMatchInformation(entity.getMatch())
                 .orElseThrow(() -> new IllegalArgumentException("Match not found"));
-        return new TicketDTO(entity.getId(), entity.getNumSeat(), m.matchDate(), entity.getMatch(), entity.getUserId());
-
+        return new TicketDTO(entity.getId(), entity.getNumSeat(), m, entity.getUserId());
     }
 }

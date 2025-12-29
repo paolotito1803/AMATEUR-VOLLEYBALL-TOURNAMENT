@@ -38,16 +38,18 @@
                 <table class="table table-striped table-bordered">
                     <thead class="table-dark">
                     <tr>
-                        <th>Date</th>
                         <th>Seat Number</th>
+                        <th>Date</th>
+                        <th>Stadium</th>
                         <th>Match</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:each="ticket: ${tickets}">
-                        <td th:next="${ticket.date()}">Date</td>
                         <td th:text="${ticket.numSeat()}">Seat Number</td>
-                        <td th:text="${ticket.match()}">Match</td>
+                        <td th:next="${ticket.match().matchDate()}">Date</td>
+                        <td th:text="${ticket.match().stadium()}">Stadium</td>
+                        <td th:next="${ticket.match().teamA()} - ${ticket.match().teamB()}">Match</td>
                     </tr>
                     </tbody>
                 </table>

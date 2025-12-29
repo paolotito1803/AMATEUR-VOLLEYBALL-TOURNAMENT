@@ -1,14 +1,11 @@
-package org.example.amateurvolleyballtournament.users.internal;
+/*package org.example.amateurvolleyballtournament.users.internal;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
-@Component
 public class AdminInitializer implements CommandLineRunner {
-
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -17,25 +14,24 @@ public class AdminInitializer implements CommandLineRunner {
         this.passwordEncoder = passwordEncoder;
     }
 
+
     @Override
     public void run(String... args) throws Exception {
-        // Controlliamo se esiste già un utente con email "admin@volleyball.com"
-        if (userRepository.findByEmail("admin@volleyball.com").isEmpty()) {
-
-            System.out.println("⚠️ Nessun Admin trovato. Creazione utente Admin di default...");
+        //check if user admin exist
+        if(userRepository.findByEmail("admin@volleyball.com").isEmpty()){
+            System.out.println("⚠️ Admin not found. Default admin creation...");
 
             UserEntity admin = new UserEntity(
                     UUID.randomUUID().toString(),
-                    "Super",
+                    "Admin",
                     "Admin",
                     "admin@volleyball.com",
-                    passwordEncoder.encode("admin123"), // Password: admin123
+                    passwordEncoder.encode("admin123"), //password,
                     "ADMIN",
-                    true  // Attivo
+                    true
             );
-
             userRepository.save(admin);
-            System.out.println("✅ Admin creato: admin@volleyball.com / admin123");
+            System.out.println("✅ creation ended successfully: admin@volleyball.com / admin123");
         }
     }
-}
+}*/
