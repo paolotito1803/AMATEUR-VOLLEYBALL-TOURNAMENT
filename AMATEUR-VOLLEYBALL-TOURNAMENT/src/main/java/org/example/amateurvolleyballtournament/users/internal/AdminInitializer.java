@@ -1,4 +1,4 @@
-package org.example.amateurvolleyballtournament.users.internal;
+/*package org.example.amateurvolleyballtournament.users.internal;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,3 +33,4 @@ public class AdminInitializer implements CommandLineRunner {
         }
     }
 }
+*/
