@@ -11,6 +11,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    // Questo Bean serve per poter iniettare PasswordEncoder nel tuo Service
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

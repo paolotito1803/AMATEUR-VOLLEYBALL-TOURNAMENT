@@ -17,7 +17,7 @@ public interface MatchRepository extends JpaRepository<MatchEntity, String> {
     @Query("SELECT COALESCE(MAX(m.stage), 0) FROM MatchEntity m WHERE m.tournamentId = :tournamentId")
     int findMaxStageByTournamentId(String tournamentId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
         UPDATE MatchEntity m
         SET m.freeSeats = m.freeSeats - 1
