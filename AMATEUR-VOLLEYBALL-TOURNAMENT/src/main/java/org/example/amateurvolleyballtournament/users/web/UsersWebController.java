@@ -1,5 +1,6 @@
 package org.example.amateurvolleyballtournament.users.web;
 
+import org.example.amateurvolleyballtournament.teams.TeamService;
 import org.example.amateurvolleyballtournament.users.UsersService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,9 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 class UsersWebController {
 
     private final UsersService usersService;
+    private final TeamService teamService;
 
-    UsersWebController(UsersService usersService) {
+    UsersWebController(UsersService usersService, TeamService teamService) {
         this.usersService = usersService;
+        this.teamService = teamService;
     }
 
     // URL: http://localhost:8080/users/manager
@@ -31,6 +34,19 @@ class UsersWebController {
 
     @GetMapping("/registration")
     public String showRegistrationPage(Model model) {
-        return "users/registrer";
+        return "users/register";
+    }
+
+    @GetMapping("/admin_dashboard")
+    public String showAdminDashboardPage(Model model) {
+        //team list for checkbox
+        model.addAttribute("allTeams", teamService.getAllTeams());
+
+        return "users/AdminDashboard";
+    }
+
+    @GetMapping("referee_dashboard")
+    public String showRefereeDashboard(Model model) {
+        return "users/RefereeDashboard";
     }
 }
