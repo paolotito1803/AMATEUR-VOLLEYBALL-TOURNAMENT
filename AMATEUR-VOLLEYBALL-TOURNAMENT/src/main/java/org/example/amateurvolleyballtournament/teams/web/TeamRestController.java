@@ -115,4 +115,25 @@ class TeamRestController {
             return ResponseEntity.internalServerError().body("Error seeding data: " + e.getMessage());
         }
     }
+
+    @GetMapping("/my-team")
+    public ResponseEntity<TeamDTO> getTeamByCoachId(@RequestParam String coachId) {
+        // Cerchiamo tra tutti i team quello che ha questo coachId
+        // Nota: Questo non è efficientissimo su grandi dati, ma va bene per ora.
+        // L'ideale sarebbe avere un metodo findByCoachId nel Service.
+        return teamService.getAllTeams().stream()
+                .filter(t -> t.coachId().equals(coachId))
+                .findFirst()
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{teamId}/players")
+    public ResponseEntity<String> addPlayer(@PathVariable String teamId, @RequestBody PlayerDTO player) {
+        // Recuperiamo il coachId dal team (un po' macchinoso senza auth context, ma funzionale)
+        var team = teamService.getTeam(teamId).orElseThrow(() -> new RuntimeException("Team not found"));
+
+        teamService.addPlayer(team.coachId(), player);
+        return ResponseEntity.ok("Player added");
+    }
 }

@@ -49,4 +49,9 @@ class UsersWebController {
     public String showRefereeDashboard(Model model) {
         return "users/RefereeDashboard";
     }
+
+    @GetMapping("coach_dashboard")
+    public String showCoachDashboard(Model model) {
+        return "users/CoachDashboard";
+    }
 }

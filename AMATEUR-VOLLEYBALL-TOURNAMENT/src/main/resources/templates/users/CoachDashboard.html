@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Coach Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-primary mb-5">
+    <div class="container">
+        <a class="navbar-brand" href="#">🏐 Coach Dashboard</a>
+        <div class="d-flex align-items-center gap-3">
+            <span id="nav-user" class="text-white fw-bold"></span>
+            <button onclick="logout()" class="btn btn-outline-light btn-sm">Logout</button>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+
+    <!-- LOADING -->
+    <div id="loading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
+
+    <!-- VISTA 1: REGISTRAZIONE SQUADRA (Se il coach non ne ha una) -->
+    <div id="registration-view" class="row justify-content-center d-none">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h4>Benvenuto Coach!</h4>
+                    <p class="text-muted mb-0">Non hai ancora una squadra. Creane una ora.</p>
+                </div>
+                <div class="card-body">
+                    <form onsubmit="registerTeam(event)">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nome Squadra</label>
+                            <input type="text" id="regTeamName" class="form-control" placeholder="Es. Tigers" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Registra Squadra</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA 2: GESTIONE SQUADRA (Se il coach ha già una squadra) -->
+    <div id="management-view" class="d-none">
+
+        <!-- Intestazione Squadra -->
+        <div class="card shadow mb-4 border-primary">
+            <div class="card-body">
+                <h2 id="teamNameDisplay" class="mb-0 text-primary fw-bold">Team Name</h2>
+                <p class="text-muted mb-0">Coach: <span id="coachNameDisplay"></span></p>
+                <div class="mt-2">
+                    <span class="badge bg-secondary" id="stadiumDisplay">Stadio non assegnato</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Form Aggiungi Giocatore -->
+            <div class="col-md-4">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Aggiungi Giocatore</h5>
+                    </div>
+                    <div class="card-body">
+                        <form onsubmit="addPlayer(event)">
+                            <div class="mb-2">
+                                <label class="form-label">Nome Completo</label>
+                                <input type="text" id="pName" class="form-control" required>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Numero Maglia</label>
+                                <input type="number" id="pNum" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Ruolo</label>
+                                <!-- I valori devono coincidere con l'ENUM Java VolleyballRole -->
+                                <select id="pRole" class="form-select" required>
+                                    <option value="PLAYER">Schiacciatore (Player)</option>
+                                    <option value="SETTER">Palleggiatore (Setter)</option>
+                                    <option value="LIBERO">Libero</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">Salva Giocatore</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista Giocatori -->
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h5 class="mb-0">Rosa Squadra</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th>N°</th>
+                                <th>Nome</th>
+                                <th>Ruolo</th>
+                            </tr>
+                            </thead>
+                            <tbody id="players-table-body">
+                            <!-- Riempito via JS -->
+                            </tbody>
+                        </table>
+                        <div id="empty-roster-msg" class="text-center p-3 text-muted d-none">
+                            Nessun giocatore inserito.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- SETUP ---
+    const token = localStorage.getItem('jwt_token');
+    const user = JSON.parse(localStorage.getItem('user_info'));
+
+    // Controlli di sicurezza
+    if (!token || !user) window.location.href = '/users/login';
+    if (user.role !== 'COACH') {
+        alert("Accesso negato: Non sei un Coach.");
+        window.location.href = '/users/login';
+    }
+
+    document.getElementById('nav-user').textContent = user.username;
+
+    // --- INIZIALIZZAZIONE ---
+    document.addEventListener('DOMContentLoaded', init);
+
+    async function init() {
+        try {
+            // 1. Scarichiamo TUTTI i team (poiché non c'è un endpoint di ricerca specifico)
+            const res = await fetch('/api/teams', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            document.getElementById('loading').classList.add('d-none');
+
+            if (res.ok) {
+                const allTeams = await res.json();
+
+                // 2. Cerchiamo in JS se c'è un team che appartiene a questo coach
+                // user.id viene dal login, t.coachId viene dal DTO del team
+                const myTeam = allTeams.find(t => t.coachId === user.id);
+
+                if (myTeam) {
+                    renderDashboard(myTeam);
+                } else {
+                    document.getElementById('registration-view').classList.remove('d-none');
+                }
+            } else {
+                console.error("Errore nel caricamento dei team");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Errore di connessione.");
+        }
+    }
+
+    // --- RENDER ---
+    function renderDashboard(team) {
+        document.getElementById('registration-view').classList.add('d-none');
+        document.getElementById('management-view').classList.remove('d-none');
+
+        document.getElementById('teamNameDisplay').textContent = team.name;
+        document.getElementById('coachNameDisplay').textContent = team.coachName;
+
+        if (team.stadium) {
+            document.getElementById('stadiumDisplay').textContent =
+                `Stadio: ${team.stadium.name} (${team.stadium.maxSeats} posti)`;
+        }
+
+        const tbody = document.getElementById('players-table-body');
+        tbody.innerHTML = '';
+
+        if (!team.players || team.players.length === 0) {
+            document.getElementById('empty-roster-msg').classList.remove('d-none');
+        } else {
+            document.getElementById('empty-roster-msg').classList.add('d-none');
+
+            // Ordina i giocatori per numero
+            team.players.sort((a,b) => a.number - b.number).forEach(p => {
+                const row = `
+                    <tr>
+                        <td class="fw-bold">${p.number}</td>
+                        <td>${p.name}</td>
+                        <td><span class="badge bg-info text-dark">${p.role}</span></td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+    }
+
+    // --- AZIONE: REGISTRA SQUADRA ---
+    async function registerTeam(e) {
+        e.preventDefault();
+        const name = document.getElementById('regTeamName').value;
+
+        // DTO atteso da RegisterTeamRequest
+        const body = {
+            coachId: user.id,
+            coachName: user.username + " " + user.surname,
+            teamName: name
+        };
+
+        const res = await fetch('/api/teams/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(body)
+        });
+
+        if (res.ok) {
+            alert("Squadra creata!");
+            location.reload();
+        } else {
+            alert("Errore: Probabilmente il nome della squadra esiste già.");
+        }
+    }
+
+    // --- AZIONE: AGGIUNGI GIOCATORE ---
+    async function addPlayer(e) {
+        e.preventDefault();
+
+        const playerDto = {
+            name: document.getElementById('pName').value,
+            number: parseInt(document.getElementById('pNum').value),
+            role: document.getElementById('pRole').value
+        };
+
+        // Chiamata al NUOVO endpoint aggiunto nel controller: /api/teams/{coachId}/players
+        const res = await fetch(`/api/teams/${user.id}/players`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(playerDto)
+        });
+
+        if (res.ok) {
+            alert("Giocatore aggiunto!");
+            location.reload();
+        } else {
+            const txt = await res.text();
+            alert("Errore: " + txt);
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('jwt_token');
+        localStorage.removeItem('user_info');
+        window.location.href = '/users/login';
+    }
+</script>
+
+</body>
+</html>

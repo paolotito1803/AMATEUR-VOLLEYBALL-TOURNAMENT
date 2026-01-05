@@ -51,8 +51,26 @@
                 localStorage.setItem('jwt_token', data.token);
                 localStorage.setItem('user_info', JSON.stringify(data.user));
 
-                // Reindirizza alla dashboard
-                window.location.href = '/users/manager';
+                // role check
+                const role = data.user.role;;
+                if (role === 'ADMIN') {
+                    window.location.href = '/users/admin_dashboard';
+                }
+                else if (role === 'REFEREE') {
+                    window.location.href = '/users/referee_dashboard';
+                }
+                else if (role === 'COACH') {
+                    // Assicurati di avere questa pagina nel Controller
+                    window.location.href = '/users/coach_dashboard';
+                }
+                else if (role === 'VIEWER' /*|| role === 'PLAYER'*/) {
+                    // Assicurati di avere questa pagina
+                    window.location.href = '/users/viewer_dashboard';
+                }
+                else {
+                    // Fallback se il ruolo è strano
+                    window.location.href = '/';
+                }
             } else {
                 errorDiv.textContent = "Invalid credentials!";
                 errorDiv.classList.remove("d-none");
