@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Ticket Office</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .ticket-card { border-left: 5px solid #198754; transition: transform 0.2s; }
+        .ticket-card:hover { transform: translateY(-5px); }
+        .match-card { border-left: 5px solid #0d6efd; }
+    </style>
+</head>
+<body class="bg-light">
+
+<!-- NAVBAR CON LOGOUT -->
+<nav class="navbar navbar-dark bg-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="#">🏐 Ticket Office</a>
+        <div class="d-flex align-items-center gap-3">
+            <!-- Qui verrà mostrato il nome utente -->
+            <span id="nav-user" class="text-white fw-bold"></span>
+
+            <!-- PULSANTE LOGOUT -->
+            <button onclick="logout()" class="btn btn-danger btn-sm">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </button>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+
+    <!-- TABS NAVIGAZIONE -->
+    <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="shop-tab" data-bs-toggle="tab" data-bs-target="#shop-pane" type="button">
+                🎟 Acquista Biglietti
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="wallet-tab" data-bs-toggle="tab" data-bs-target="#wallet-pane" type="button" onclick="loadMyTickets()">
+                👜 I Miei Acquisti
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="myTabContent">
+
+        <!-- 1. SHOP (PARTITE DISPONIBILI) -->
+        <div class="tab-pane fade show active" id="shop-pane">
+            <div id="matches-container" class="row">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary"></div>
+                    <p>Caricamento partite...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. WALLET (STORICO BIGLIETTI) -->
+        <div class="tab-pane fade" id="wallet-pane">
+            <div id="tickets-container" class="row">
+                <p class="text-muted text-center">Caricamento...</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL ACQUISTO -->
+<div class="modal fade" id="buyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Conferma Acquisto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Stai acquistando un biglietto per:</p>
+                <h4 id="modalMatchName" class="text-center text-primary fw-bold my-3">Lions vs Tigers</h4>
+
+                <div class="mb-3">
+                    <label class="form-label">Posti Disponibili:</label>
+                    <span id="modalSeats" class="badge bg-info text-dark">100</span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Seleziona Numero Posto</label>
+                    <input type="number" id="seatInput" class="form-control" value="1" min="1">
+                </div>
+
+                <input type="hidden" id="selectedMatchId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-success fw-bold" onclick="confirmPurchase()">Paga & Prenota</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // --- SETUP ---
+    const token = localStorage.getItem('jwt_token');
+    const user = JSON.parse(localStorage.getItem('user_info'));
+    const buyModal = new bootstrap.Modal(document.getElementById('buyModal'));
+
+    // Controllo Accesso
+    if (!token || !user) {
+        window.location.href = '/users/login';
+    } else {
+        // Mostra nome utente nella navbar
+        document.getElementById('nav-user').textContent = "Ciao, " + user.username;
+        loadMatches();
+    }
+
+    // --- FUNZIONE LOGOUT ---
+    function logout() {
+        // Rimuove token e info utente
+        localStorage.removeItem('jwt_token');
+        localStorage.removeItem('user_info');
+        // Reindirizza al login
+        window.location.href = '/users/login';
+    }
+
+    // --- 1. CARICA PARTITE DISPONIBILI (SHOP) ---
+    async function loadMatches() {
+        try {
+            const res = await fetch('/api/tournaments/all', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            if (!res.ok) throw new Error("Errore server");
+
+            const tournaments = await res.json();
+            const container = document.getElementById('matches-container');
+            container.innerHTML = '';
+
+            let foundAny = false;
+
+            tournaments.forEach(t => {
+                if (t.matches) {
+                    t.matches.forEach(m => {
+                        if (!m.winner && m.teamA && m.teamB && m.freeSeats > 0) {
+                            foundAny = true;
+                            renderMatchCard(m, t.tournamentName, container);
+                        }
+                    });
+                }
+            });
+
+            if (!foundAny) {
+                container.innerHTML = '<div class="alert alert-info text-center">Nessuna partita disponibile per l\'acquisto al momento.</div>';
+            }
+
+        } catch (e) {
+            console.error(e);
+            alert("Errore caricamento partite");
+        }
+    }
+
+    function renderMatchCard(match, tournamentName, container) {
+        let dateStr = "Data TBD";
+        if(match.matchDate) {
+            const d = new Date(match.matchDate);
+            dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        const html = `
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card shadow-sm match-card h-100">
+                    <div class="card-header bg-white">
+                        <small class="text-muted fw-bold">${tournamentName}</small>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title text-primary mb-3">${match.teamA} <span class="text-dark">vs</span> ${match.teamB}</h5>
+                        <p class="card-text text-muted small mb-1">
+                            <i class="bi bi-geo-alt"></i> ${match.stadium || 'Stadio TBD'}
+                        </p>
+                        <p class="card-text text-muted small">
+                            <i class="bi bi-calendar-event"></i> ${dateStr}
+                        </p>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-info text-dark">${match.freeSeats} posti liberi</span>
+                            <button class="btn btn-primary btn-sm"
+                                onclick="openBuyModal('${match.matchId}', '${match.teamA} vs ${match.teamB}', ${match.freeSeats})">
+                                Acquista
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.innerHTML += html;
+    }
+
+    // --- 2. GESTIONE ACQUISTO ---
+    function openBuyModal(id, title, seats) {
+        document.getElementById('selectedMatchId').value = id;
+        document.getElementById('modalMatchName').textContent = title;
+        document.getElementById('modalSeats').textContent = seats;
+        buyModal.show();
+    }
+
+    async function confirmPurchase() {
+        const matchId = document.getElementById('selectedMatchId').value;
+        const seatNum = parseInt(document.getElementById('seatInput').value);
+
+        if (!seatNum || seatNum < 1) { alert("Inserisci un numero posto valido"); return; }
+
+        const body = {
+            userId: user.id,
+            matchId: matchId,
+            numSeat: seatNum
+        };
+
+        try {
+            const res = await fetch('/api/tickets/booking', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (res.ok) {
+                alert("Biglietto Acquistato con Successo!");
+                buyModal.hide();
+                loadMatches();
+                const tab = new bootstrap.Tab(document.getElementById('wallet-tab'));
+                tab.show();
+                loadMyTickets();
+            } else {
+                const txt = await res.text();
+                alert("Errore acquisto: " + txt);
+            }
+        } catch (e) {
+            alert("Errore connessione: " + e.message);
+        }
+    }
+
+    // --- 3. CARICA I MIEI BIGLIETTI (WALLET) ---
+    async function loadMyTickets() {
+        const container = document.getElementById('tickets-container');
+        container.innerHTML = '<div class="text-center w-100"><div class="spinner-border text-success"></div></div>';
+
+        try {
+            const res = await fetch(`/api/tickets?userId=${user.id}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            if (!res.ok) throw new Error("Errore recupero biglietti");
+
+            const tickets = await res.json();
+            container.innerHTML = '';
+
+            if (tickets.length === 0) {
+                container.innerHTML = '<div class="alert alert-warning text-center w-100">Non hai ancora acquistato biglietti.</div>';
+                return;
+            }
+
+            tickets.forEach(t => {
+                const matchName = t.match ? `${t.match.teamA} vs ${t.match.teamB}` : "Match Sconosciuto";
+                const stadium = t.match ? t.match.stadium : "N/D";
+
+                let dateStr = "Data TBD";
+                if(t.match && t.match.matchDate) {
+                    const d = new Date(t.match.matchDate);
+                    dateStr = d.toLocaleDateString();
+                }
+
+                const html = `
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card ticket-card shadow-sm h-100">
+                            <div class="card-body">
+                                <h5 class="card-title text-success">
+                                    <i class="bi bi-ticket-perforated-fill"></i> Biglietto #${t.id.substring(0,8)}
+                                </h5>
+                                <h6 class="card-subtitle mb-2 text-muted">${matchName}</h6>
+                                <p class="card-text mt-3">
+                                    <strong>Posto:</strong> ${t.numSeat}<br>
+                                    <strong>Stadio:</strong> ${stadium}<br>
+                                    <strong>Data:</strong> ${dateStr}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+
+        } catch (e) {
+            console.error(e);
+            container.innerHTML = '<div class="alert alert-danger w-100">Errore caricamento storico.</div>';
+        }
+    }
+</script>
+
+</body>
+</html>

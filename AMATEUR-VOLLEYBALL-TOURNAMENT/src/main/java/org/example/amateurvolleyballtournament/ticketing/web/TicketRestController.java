@@ -30,7 +30,7 @@ class TicketRestController {
     }
 
     @GetMapping
-    public List<TicketDTO> getTicketsUser(String userId) {
+    public List<TicketDTO> getTicketsUser(@RequestParam  String userId) {
         return ticketService.getAllTicketsByUserId(userId);
     }
 

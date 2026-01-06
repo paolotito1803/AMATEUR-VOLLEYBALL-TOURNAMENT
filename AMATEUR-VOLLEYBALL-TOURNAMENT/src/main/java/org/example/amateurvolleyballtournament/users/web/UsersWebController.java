@@ -54,4 +54,9 @@ class UsersWebController {
     public String showCoachDashboard(Model model) {
         return "users/CoachDashboard";
     }
+
+    @GetMapping("viewer_dashboard")
+    public String showViewerDashboard(Model model) {
+        return "users/ViewerDashboard";
+    }
 }
