@@ -35,6 +35,15 @@ class TournamentWebController {
         return "tournament/manager";
     }
 
+    // Allows the admin to create tournaments
+    @GetMapping("/admin_dashboard")
+    public String showAdminDashboardPage(Model model) {
+        //team list for checkbox
+        model.addAttribute("allTeams", teamService.getAllTeams());
+
+        return "tournament/AdminDashboard";
+    }
+
     // Visualise tournament brackets
     @GetMapping("/{id}/bracket")
     public String showBracket(@PathVariable String id, Model model) {
