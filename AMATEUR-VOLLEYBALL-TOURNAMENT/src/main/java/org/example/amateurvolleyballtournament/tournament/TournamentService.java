@@ -40,6 +40,10 @@ public interface TournamentService {
 
     Optional<MatchDTO> getNextMatch(String matchId);
 
+    int getMatchCount(String tournamentId);
+
+    int getTeamCount(String tournamentId);
+
     // Check parameters for creation, fetch matches and teams and manage first stage of tournament
     void createTournament(String tournamentName, List<String> teams);
 

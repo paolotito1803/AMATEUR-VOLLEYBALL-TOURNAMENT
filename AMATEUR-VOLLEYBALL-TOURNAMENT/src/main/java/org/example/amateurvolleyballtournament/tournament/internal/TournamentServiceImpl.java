@@ -174,6 +174,16 @@ class TournamentServiceImpl implements TournamentService {
         ));
     }
 
+    @Override
+    public int getMatchCount(String tournamentId) {
+        return tournamentPersistence.getMatchesByTournament(tournamentId).size();
+    }
+
+    @Override
+    public int getTeamCount(String tournamentId) {
+        return tournamentPersistence.findById(tournamentId).orElseThrow(() -> new IllegalStateException("Tournament not found")).getTeams().size();
+    }
+
     // Check parameters for creation, fetch matches and teams builds the tournament structure
     @Override
     public void createTournament(String tournamentName, List<String> teams) {

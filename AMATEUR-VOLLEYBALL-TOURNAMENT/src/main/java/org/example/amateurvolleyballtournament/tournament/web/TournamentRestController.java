@@ -50,6 +50,23 @@ class TournamentRestController {
         return tournamentService.getMatchWinner(matchId);
     }
 
+    @GetMapping("/match/count")
+    public int getMatchCount(@RequestParam String tournamentId) {
+        return tournamentService.getMatchCount(tournamentId);
+    }
+
+    @GetMapping("/team/count")
+    public int getTeamCount(@RequestParam String tournamentId) {
+        return tournamentService.getTeamCount(tournamentId);
+    }
+
+    @GetMapping("/{tournamentId}/matches")
+    public List<MatchDTO> getTournamentMatches(@PathVariable String tournamentId) {
+        return tournamentService.getTournamentDetails(tournamentId)
+                .map(TournamentDTO::matches)
+                .orElse(List.of());
+    }
+
     @PostMapping("/update_name")
     public ResponseEntity<String> updateTournamentName(@RequestBody TournamentRequests.UpdateTournamentNameRequest request) {
         tournamentService.updateTournamentName(request.tournamentId(), request.tournamentName());

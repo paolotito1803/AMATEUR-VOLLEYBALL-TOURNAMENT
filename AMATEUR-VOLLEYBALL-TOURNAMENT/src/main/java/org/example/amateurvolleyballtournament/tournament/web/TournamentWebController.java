@@ -50,4 +50,34 @@ class TournamentWebController {
 
         return "tournament/bracket";
     }
+
+    @GetMapping("/{id}/bracket_view")
+    public String showBracketView(@PathVariable String id, Model model) {
+        TournamentDTO tournament = tournamentService.getTournamentDetails(id)
+                .orElseThrow(() -> new IllegalArgumentException("Tournament not found"));
+
+        Map<Integer, List<MatchDTO>> matchesByStage = tournament.matches().stream()
+                .sorted(Comparator.comparingInt(MatchDTO::matchIndex))
+                .collect(Collectors.groupingBy(MatchDTO::stage));
+
+        model.addAttribute("tournament", tournament);
+        model.addAttribute("matchesByStage", matchesByStage);
+
+        return "tournament/bracket_view";
+    }
+
+    @GetMapping("/{id}/view")
+    public String showView(@PathVariable String id, Model model) {
+        TournamentDTO tournament = tournamentService.getTournamentDetails(id)
+                .orElseThrow(() -> new IllegalArgumentException("Tournament not found"));
+
+        Map<Integer, List<MatchDTO>> matchesByStage = tournament.matches().stream()
+                .sorted(Comparator.comparingInt(MatchDTO::matchIndex))
+                .collect(Collectors.groupingBy(MatchDTO::stage));
+
+        model.addAttribute("tournament", tournament);
+        model.addAttribute("matchesByStage", matchesByStage);
+
+        return "tournament/tournament_view";
+    }
 }
