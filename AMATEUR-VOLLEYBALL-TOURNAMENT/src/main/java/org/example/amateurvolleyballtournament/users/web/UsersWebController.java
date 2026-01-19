@@ -12,11 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 class UsersWebController {
 
     private final UsersService usersService;
-    private final TeamService teamService;
 
-    UsersWebController(UsersService usersService, TeamService teamService) {
+    UsersWebController(UsersService usersService) {
         this.usersService = usersService;
-        this.teamService = teamService;
     }
 
     // URL: http://localhost:8080/users/manager
@@ -35,14 +33,6 @@ class UsersWebController {
     @GetMapping("/registration")
     public String showRegistrationPage(Model model) {
         return "users/register";
-    }
-
-    @GetMapping("/admin_dashboard")
-    public String showAdminDashboardPage(Model model) {
-        //team list for checkbox
-        model.addAttribute("allTeams", teamService.getAllTeams());
-
-        return "users/AdminDashboard";
     }
 
     @GetMapping("referee_dashboard")
