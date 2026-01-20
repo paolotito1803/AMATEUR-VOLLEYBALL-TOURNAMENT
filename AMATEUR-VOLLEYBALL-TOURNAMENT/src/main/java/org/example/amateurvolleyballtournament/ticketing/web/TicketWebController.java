@@ -20,4 +20,9 @@ class TicketWebController {
         model.addAttribute("tickets", ticketService.getAllTicketsByUserId("1"));
         return "ticketing/manager";
     }
+
+    @GetMapping("/my-tickets")
+    public String showMyTickets(Model model) {
+        return "ticketing/tickets";
+    }
 }
