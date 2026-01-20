@@ -128,12 +128,12 @@ class TeamRestController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/{teamId}/players")
-    public ResponseEntity<String> addPlayer(@PathVariable String teamId, @RequestBody PlayerDTO player) {
+    @PostMapping("/{coachId}/players")
+    public ResponseEntity<String> addPlayer(@PathVariable String coachId, @RequestBody PlayerDTO player) {
         // Recuperiamo il coachId dal team (un po' macchinoso senza auth context, ma funzionale)
-        var team = teamService.getTeam(teamId).orElseThrow(() -> new RuntimeException("Team not found"));
+        //var team = teamService.get.orElseThrow(() -> new RuntimeException("Team not found"));
 
-        teamService.addPlayer(team.coachId(), player);
+        teamService.addPlayer(coachId, player);
         return ResponseEntity.ok("Player added");
     }
 }
