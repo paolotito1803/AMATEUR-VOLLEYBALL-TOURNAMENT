@@ -96,7 +96,7 @@ class TournamentServiceImpl implements TournamentService {
                 entity.getTournamentId(),
                 entity.getTournamentName(),
                 matchDTOs,
-                new ArrayList<>() // TODO: Empty teams list for now
+                getTeams()
         ));
     }
 

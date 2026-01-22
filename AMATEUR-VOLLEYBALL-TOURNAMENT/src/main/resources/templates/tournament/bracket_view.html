@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Tournament Bracket - View Only</title>
+    <title>Tournament Bracket</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
         .hero-section {
@@ -17,7 +17,7 @@
             padding: 30px 20px;
             background-color: #f8f9fa;
             border-radius: 10px;
-            min-height: 400px; /* Ensures visible area even if empty */
+            min-height: 400px;
         }
         .stage-column {
             display: flex;
@@ -66,6 +66,8 @@
             justify-content: space-between;
             align-items: center;
             transition: background 0.2s;
+            position: relative;
+            z-index: 10;
         }
         .team-row:not(:last-child) {
             border-bottom: 1px solid #dee2e6;
@@ -74,6 +76,14 @@
             font-weight: 500;
             font-size: 1rem;
             color: #212529;
+        }
+
+        /* ADMIN MODE: Clickable team rows */
+        .team-row.clickable {
+            cursor: pointer;
+        }
+        .team-row.clickable:hover:not(.locked):not(.waiting) {
+            background-color: #e2e6ea;
         }
 
         /* State classes */
@@ -107,6 +117,11 @@
         .team-row.loser .team-name {
             color: #6c757d;
             text-decoration: line-through;
+        }
+
+        .team-row.locked {
+            pointer-events: none !important;
+            opacity: 0.8;
         }
 
         .badge-bye {
@@ -168,6 +183,23 @@
             background-color: #f8f9fa;
             opacity: 0.6;
         }
+
+        .admin-badge {
+            background-color: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .view-mode-badge {
+            background-color: #6c757d;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+        }
     </style>
 </head>
 
@@ -178,6 +210,7 @@
         <a class="navbar-brand fw-bold" href="/">🏐 Volleyball Tournament</a>
         <div class="d-flex align-items-center gap-3">
             <span id="nav-user" class="text-white"></span>
+            <span id="mode-badge" class="view-mode-badge">View Mode</span>
             <a href="/" class="btn btn-outline-light btn-sm">Home</a>
             <button onclick="logout()" class="btn btn-danger btn-sm" id="logout-btn" style="display: none;">Logout</button>
         </div>
@@ -212,7 +245,12 @@
     <div id="bracket-view">
 
         <div class="legend">
-            <h5 class="mb-3">Legend</h5>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Legend</h5>
+                <div id="admin-notice" style="display: none;">
+                    <span class="badge bg-danger">🔓 Admin Mode: Click teams to set winner</span>
+                </div>
+            </div>
             <div class="d-flex flex-wrap">
                 <div class="legend-item">
                     <div class="legend-box legend-winner"></div>
@@ -244,7 +282,6 @@
 
 <script th:inline="javascript">
     /*<![CDATA[*/
-    // Inject the tournament object directly from the Spring Model
     const tournamentData = /*[[${tournament}]]*/ null;
     /*]]>*/
 </script>
@@ -253,24 +290,33 @@
     // Auth Logic
     const token = localStorage.getItem('jwt_token');
     const user = token ? JSON.parse(localStorage.getItem('user_info')) : null;
+    let isAdmin = false;
 
     if (user) {
         document.getElementById('nav-user').textContent = `Hello, ${user.username}!`;
         document.getElementById('logout-btn').style.display = 'block';
+
+        // Check if user is ADMIN
+        isAdmin = user.role === 'ADMIN';
+
+        if (isAdmin) {
+            document.getElementById('mode-badge').textContent = 'Admin Mode';
+            document.getElementById('mode-badge').className = 'admin-badge';
+            document.getElementById('admin-notice').style.display = 'block';
+        }
     }
 
     function logout() {
         localStorage.removeItem('jwt_token');
         localStorage.removeItem('user_info');
-        window.location.href = '/users/login';
+        window.location.href = '/';
     }
 
     function goBack() {
-        // Redirect logic to the view page
         if(tournamentData && tournamentData.id) {
             window.location.href = `/tournament/${tournamentData.id}/view`;
         } else {
-            window.location.href = '/tournament/manager';
+            window.location.href = '/';
         }
     }
 
@@ -286,10 +332,7 @@
     });
 
     function renderBracket(tournament) {
-        // Group matches by stage
         const matchesByStage = {};
-
-        // Safety check if matches is null
         const matches = tournament.matches || [];
 
         matches.forEach(match => {
@@ -299,14 +342,10 @@
             matchesByStage[match.stage].push(match);
         });
 
-        // Render bracket
         const container = document.querySelector('.bracket-container');
         container.innerHTML = '';
 
         const sortedStages = Object.keys(matchesByStage).sort((a, b) => a - b);
-
-        // Use teams length to calculate stage names (e.g. Round of 16)
-        // If teams list is empty/null, default to 0 to avoid errors
         const teamCount = tournament.teams ? tournament.teams.length : 0;
 
         if (sortedStages.length === 0) {
@@ -316,7 +355,6 @@
 
         sortedStages.forEach((stage, index) => {
             const stageMatches = matchesByStage[stage].sort((a, b) => a.matchIndex - b.matchIndex);
-
             const stageName = getStageName(stage, teamCount, sortedStages.length);
             const isLastStage = index === sortedStages.length - 1;
 
@@ -328,7 +366,6 @@
     function getStageName(stage, teamCount, totalStages) {
         const stageNum = parseInt(stage);
 
-        // Logic for standard brackets (powers of 2)
         if (teamCount === 16) {
             if (stageNum === 1) return 'Round of 16';
             if (stageNum === 2) return 'Quarter-finals';
@@ -345,11 +382,6 @@
             return 'Final';
         }
 
-        // Fallback for non-standard sizes or unknown stages
-        // If it's the last stage, it's usually the Final
-        /* Note: This simple logic might fail if stage numbering isn't sequential
-           starting from 1, but based on your backend it seems to be.
-        */
         if (stageNum === totalStages && totalStages > 1) return 'Final';
         if (stageNum === totalStages - 1 && totalStages > 2) return 'Semi-finals';
 
@@ -366,9 +398,6 @@
         column.appendChild(header);
 
         matches.forEach(match => {
-            // Logic to handle BYE visibility.
-            // If you want to hide matches where a team gets a BYE, keep this.
-            // If you want to show them, comment out these lines.
             if (match.teamA === 'BYE' || match.teamB === 'BYE') {
                 return;
             }
@@ -384,12 +413,9 @@
         const card = document.createElement('div');
         card.className = 'match-card';
 
-        // Check if teams are assigned
         const isMatchReady = match.teamA && match.teamA !== '' && match.teamB && match.teamB !== '';
-        // Check if there is a winner
         const hasWinner = match.winner && match.winner !== '';
 
-        // Match header
         const header = document.createElement('div');
         header.className = 'match-header';
         header.innerHTML = `<span class="match-index">Match #${match.matchIndex}</span>`;
@@ -397,30 +423,44 @@
 
         // Team A
         const teamARow = createTeamRow(
+            match,
             match.teamA,
             match.scoreA,
-            hasWinner && match.winner === match.teamA, // Is Winner
-            hasWinner && match.winner !== match.teamA, // Is Loser
-            !isMatchReady // Is Waiting
+            hasWinner && match.winner === match.teamA,
+            hasWinner && match.winner !== match.teamA,
+            !isMatchReady,
+            hasWinner || !isMatchReady
         );
         card.appendChild(teamARow);
 
         // Team B
         const teamBRow = createTeamRow(
+            match,
             match.teamB,
             match.scoreB,
-            hasWinner && match.winner === match.teamB, // Is Winner
-            hasWinner && match.winner !== match.teamB, // Is Loser
-            !isMatchReady // Is Waiting
+            hasWinner && match.winner === match.teamB,
+            hasWinner && match.winner !== match.teamB,
+            !isMatchReady,
+            hasWinner || !isMatchReady
         );
         card.appendChild(teamBRow);
 
         return card;
     }
 
-    function createTeamRow(teamName, score, isWinner, isLoser, isWaiting) {
+    function createTeamRow(match, teamName, score, isWinner, isLoser, isWaiting, isLocked) {
         const row = document.createElement('div');
         row.className = 'team-row';
+
+        // Add clickable class only if ADMIN and match is not locked/waiting
+        if (isAdmin && !isLocked && !isWaiting && teamName && teamName !== '') {
+            row.classList.add('clickable');
+            row.setAttribute('data-match-id', match.matchId);
+            row.setAttribute('data-team', teamName);
+            row.onclick = function() {
+                setWinner(this.getAttribute('data-match-id'), this.getAttribute('data-team'));
+            };
+        }
 
         if (isWinner) {
             row.classList.add('winner');
@@ -428,6 +468,10 @@
             row.classList.add('loser');
         } else if (isWaiting || !teamName || teamName === '') {
             row.classList.add('waiting');
+        }
+
+        if (isLocked) {
+            row.classList.add('locked');
         }
 
         const teamNameSpan = document.createElement('span');
@@ -458,6 +502,50 @@
         }
 
         return row;
+    }
+
+    // ADMIN ONLY: Set winner function
+    function setWinner(matchId, teamName) {
+        if (!isAdmin) {
+            console.log('Only admins can set winners');
+            return;
+        }
+
+        if (!teamName || teamName === 'Waiting...' || teamName === 'null' || teamName === '') {
+            console.log('Cannot set empty team as winner');
+            return;
+        }
+
+        if (!confirm(`Declare ${teamName} as the winner?`)) {
+            return;
+        }
+
+        const requestBody = {
+            matchId: matchId,
+            winner: teamName
+        };
+
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+
+        if (token) {
+            headers['Authorization'] = 'Bearer ' + token;
+        }
+
+        fetch('/api/tournaments/match/update_winner', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(requestBody)
+        })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+            })
+            .catch(error => alert("Error: " + error.message));
     }
 </script>
 
