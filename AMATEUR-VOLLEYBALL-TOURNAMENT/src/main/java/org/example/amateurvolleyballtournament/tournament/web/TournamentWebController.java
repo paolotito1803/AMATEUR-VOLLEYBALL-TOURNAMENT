@@ -4,6 +4,7 @@ import org.example.amateurvolleyballtournament.teams.TeamService;
 import org.example.amateurvolleyballtournament.tournament.MatchDTO;
 import org.example.amateurvolleyballtournament.tournament.TournamentDTO;
 import org.example.amateurvolleyballtournament.tournament.TournamentService;
+import org.example.amateurvolleyballtournament.users.UsersService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,10 +21,12 @@ import java.util.stream.Collectors;
 class TournamentWebController {
     private final TournamentService tournamentService;
     private final TeamService teamService;
+    private final UsersService usersService;
 
-    TournamentWebController(TournamentService tournamentService, TeamService teamService) {
+    TournamentWebController(TournamentService tournamentService, TeamService teamService, UsersService usersService) {
         this.tournamentService = tournamentService;
         this.teamService = teamService;
+        this.usersService = usersService;
     }
 
     // Seeds a tournament and lists all tournaments
@@ -37,11 +40,28 @@ class TournamentWebController {
 
     // Allows the admin to create tournaments
     @GetMapping("/admin_dashboard")
-    public String showAdminDashboardPage(Model model) {
-        //team list for checkbox
+    public String showAdminDashboard(Model model) {
+        // 1. Squadre per creare nuovi tornei
         model.addAttribute("allTeams", teamService.getAllTeams());
+        // 2. Tornei esistenti per poterli gestire
+        model.addAttribute("tournaments", tournamentService.getAllTournaments());
 
-        return "tournament/AdminDashboard";
+        return "tournament/admin_dashboard";
+    }
+
+    @GetMapping("/{id}/manage")
+    public String showTournamentManagement(@PathVariable String id, Model model) {
+        // Recupera i dettagli del torneo (match inclusi)
+        var tournament = tournamentService.getTournamentDetails(id)
+                .orElseThrow(() -> new IllegalArgumentException("Torneo non trovato"));
+
+        // Recupera la lista degli arbitri
+        var referees = usersService.listUsersByRole("REFEREE");
+
+        model.addAttribute("tournament", tournament);
+        model.addAttribute("referees", referees);
+
+        return "tournament/tournament_details"; // File nuovo che creiamo sotto
     }
 
     // Visualise tournament brackets

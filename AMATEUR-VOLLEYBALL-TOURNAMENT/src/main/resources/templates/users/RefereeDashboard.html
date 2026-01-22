@@ -30,20 +30,20 @@
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3>Le tue Partite</h3>
-        <button onclick="loadMatches()" class="btn btn-outline-primary btn-sm">🔄 Aggiorna</button>
+        <h3>Match</h3>
+        <button onclick="loadMatches()" class="btn btn-outline-primary btn-sm">🔄 Update</button>
     </div>
 
     <!-- ALERT se non ci sono partite -->
     <div id="no-matches-alert" class="alert alert-warning d-none text-center">
-        Nessuna partita assegnata a te al momento.
+        No Match at this moment.
     </div>
 
     <!-- CONTENITORE PARTITE -->
     <div id="matches-container" class="row">
         <div class="text-center py-5">
             <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2">Caricamento calendario...</p>
+            <p class="mt-2">Calendar Loading...</p>
         </div>
     </div>
 </div>
@@ -53,22 +53,22 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-warning">
-                <h5 class="modal-title text-dark">Dichiara Vincitore</h5>
+                <h5 class="modal-title text-dark">Winner</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center">
-                <p class="mb-4 text-muted">Chi ha vinto l'incontro?</p>
+                <p class="mb-4 text-muted">Who win?</p>
                 <div class="row g-2">
                     <div class="col-6">
                         <button onclick="submitResult('A')" class="btn btn-outline-dark w-100 py-3 h-100">
                             <h4 id="btnTeamA" class="mb-1 text-break">Team A</h4>
-                            <span class="badge bg-success">Vincitore</span>
+                            <span class="badge bg-success">Winner</span>
                         </button>
                     </div>
                     <div class="col-6">
                         <button onclick="submitResult('B')" class="btn btn-outline-dark w-100 py-3 h-100">
                             <h4 id="btnTeamB" class="mb-1 text-break">Team B</h4>
-                            <span class="badge bg-success">Vincitore</span>
+                            <span class="badge bg-success">Winner</span>
                         </button>
                     </div>
                 </div>

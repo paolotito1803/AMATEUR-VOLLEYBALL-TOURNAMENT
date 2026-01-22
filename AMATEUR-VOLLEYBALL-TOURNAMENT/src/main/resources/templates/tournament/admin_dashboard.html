@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark mb-5">
+    <div class="container">
+        <a href="/" class="btn btn-outline-secondary position-absolute top-0 start-0 m-3">
+            <i class="bi bi-arrow-left"></i> Home
+        </a>
+        <a class="navbar-brand" href="#">🏐 Admin Dashboard</a>
+        <button onclick="logout()" class="btn btn-danger btn-sm">Logout</button>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow mb-5">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Create New Tournament</h4>
+                </div>
+                <div class="card-body">
+                    <!-- FORM CREAZIONE -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tournament Name</label>
+                        <input type="text" id="tName" class="form-control" placeholder="Es. Winter Cup 2024">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Select Teams (Min 2)</label>
+                        <div class="card p-3 bg-light" style="max-height: 200px; overflow-y: auto;">
+                            <div th:each="team : ${allTeams}" class="form-check mb-2">
+                                <input class="form-check-input team-checkbox" type="checkbox" th:value="${team.name}">
+                                <label class="form-check-label" th:text="${team.name}"></label>
+                            </div>
+                            <div th:if="${allTeams.isEmpty()}" class="text-danger small">No Teams founded.</div>
+                        </div>
+                        <small class="text-muted" id="teamCount">0 selezionate</small>
+                    </div>
+
+                    <div class="d-grid">
+                        <button onclick="createTournament()" class="btn btn-success">Tournament Generation</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NUOVA SEZIONE: LISTA TORNEI ATTIVI -->
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">Active Tournament</h4>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped mb-0">
+                        <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!-- Loop sui tornei passati dal controller -->
+                        <tr th:each="t : ${tournaments}">
+                            <td th:text="${t.tournamentName}" class="align-middle fw-bold">Nome</td>
+                            <td class="text-end">
+                                <!-- LINK ALLA PAGINA DI GESTIONE -->
+                                <a th:href="@{/tournament/{id}/manage(id=${t.id})}" class="btn btn-warning btn-sm">
+                                    <i class="bi bi-whistle"></i> Referee Assignement
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${tournaments.isEmpty()}">
+                            <td colspan="2" class="text-center text-muted">No Active Tournament.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function logout() {
+        localStorage.removeItem('jwt_token');
+        localStorage.removeItem('user_info');
+        window.location.href = '/users/login';
+    }
+
+    document.querySelectorAll('.team-checkbox').forEach(cb => {
+        cb.addEventListener('change', () => {
+            const count = document.querySelectorAll('.team-checkbox:checked').length;
+            document.getElementById('teamCount').innerText = count + " selezionate";
+        });
+    });
+
+    function createTournament() {
+        const name = document.getElementById("tName").value;
+        const checkboxes = document.querySelectorAll('.team-checkbox:checked');
+        const teamsList = Array.from(checkboxes).map(cb => cb.value);
+
+        if (!name) { alert("Inserisci nome!"); return; }
+        if (teamsList.length < 2) { alert("Seleziona min 2 squadre!"); return; }
+
+        const requestBody = { tournamentName: name, teams: teamsList };
+        const token = localStorage.getItem('jwt_token');
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        fetch('/api/tournaments/create_tournament', {
+            method: 'POST', headers: headers, body: JSON.stringify(requestBody)
+        }).then(response => {
+            if (response.ok) { alert("Torneo creato!"); location.reload(); }
+            else response.text().then(t => alert("Errore: " + t));
+        }).catch(e => alert("Errore: " + e.message));
+    }
+</script>
+</body>
+</html>

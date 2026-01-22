@@ -49,12 +49,23 @@ class TournamentServiceImpl implements TournamentService {
         List<TournamentEntity> entities = (List<TournamentEntity>) tournamentPersistence.findAll();
 
         return entities.stream()
-                .map(e -> new TournamentDTO(
-                        e.getTournamentId(),
-                        e.getTournamentName(),
-                        new ArrayList<>(),  // TODO: Empty Matches DTOs for now
-                        new ArrayList<>()  // TODO: Empty Teams DTOs for now
-                ))
+                .map(e -> {
+                    // 1. RECUPERA I MATCH DAL DB PER QUESTO TORNEO
+                    List<MatchEntity> matches = tournamentPersistence.getMatchesByTournament(e.getTournamentId());
+
+                    // 2. CONVERTI I MATCH IN DTO
+                    List<MatchDTO> matchDTOS = matches.stream()
+                            .map(this::toMatchDTO)
+                            .toList();
+
+                    // 3. RESTITUISCI IL TORNEO CON I MATCH POPOLATI
+                    return new TournamentDTO(
+                            e.getTournamentId(),
+                            e.getTournamentName(),
+                            matchDTOS,          // <--- ORA LA LISTA È PIENA
+                            new ArrayList<>()   // Teams DTOs (puoi lasciarlo vuoto se non serve alla lista)
+                    );
+                })
                 .toList();
     }
 

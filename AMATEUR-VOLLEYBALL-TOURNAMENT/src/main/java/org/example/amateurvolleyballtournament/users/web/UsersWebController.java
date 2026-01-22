@@ -1,10 +1,12 @@
 package org.example.amateurvolleyballtournament.users.web;
 
 import org.example.amateurvolleyballtournament.teams.TeamService;
+import org.example.amateurvolleyballtournament.tournament.TournamentService;
 import org.example.amateurvolleyballtournament.users.UsersService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
@@ -12,9 +14,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 class UsersWebController {
 
     private final UsersService usersService;
+    private final TeamService teamService;
+    private final TournamentService tournamentService;
 
-    UsersWebController(UsersService usersService) {
+    UsersWebController(UsersService usersService, TeamService teamService, TournamentService tournamentService) {
         this.usersService = usersService;
+        this.teamService = teamService;
+        this.tournamentService = tournamentService;
     }
 
     // URL: http://localhost:8080/users/manager
