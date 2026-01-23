@@ -28,7 +28,7 @@ public interface TournamentService {
 
     void updateTournamentName(String tournamentId, String tournamentName);
 
-    List<TeamDTO> getTeams();
+    List<TeamDTO> getTeams(String tournamentId);
 
     String getMatchReferee(String matchId);
 

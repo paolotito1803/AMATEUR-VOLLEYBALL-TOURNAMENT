@@ -1,5 +1,6 @@
 package org.example.amateurvolleyballtournament.tournament.internal;
 
+import lombok.extern.slf4j.Slf4j;
 import org.example.amateurvolleyballtournament.teams.TeamDTO;
 import org.example.amateurvolleyballtournament.teams.TeamService;
 import org.example.amateurvolleyballtournament.tournament.MatchDTO;
@@ -9,14 +10,12 @@ import org.example.amateurvolleyballtournament.users.UsersService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Console;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 
+@Slf4j
 @Service
 @Transactional
 class TournamentServiceImpl implements TournamentService {
@@ -63,7 +62,7 @@ class TournamentServiceImpl implements TournamentService {
                             e.getTournamentId(),
                             e.getTournamentName(),
                             matchDTOS,          // <--- ORA LA LISTA È PIENA
-                            new ArrayList<>()   // Teams DTOs (puoi lasciarlo vuoto se non serve alla lista)
+                            getTeams(e.getTournamentId())  // Teams DTOs (puoi lasciarlo vuoto se non serve alla lista)
                     );
                 })
                 .toList();
@@ -107,7 +106,7 @@ class TournamentServiceImpl implements TournamentService {
                 entity.getTournamentId(),
                 entity.getTournamentName(),
                 matchDTOs,
-                getTeams()
+                getTeams(tournamentId)
         ));
     }
 
@@ -462,8 +461,22 @@ class TournamentServiceImpl implements TournamentService {
 
     // TODO: Is it a useful function?
     @Override
-    public List<TeamDTO> getTeams() {
-        return teamService.getAllTeams();
+    public List<TeamDTO> getTeams(String tournamentId) {
+        List<TeamDTO> teamDTO = teamService.getAllTeams();
+        TournamentEntity entity = tournamentPersistence.findById(tournamentId).orElseThrow(() -> new IllegalArgumentException("Tournament with id " + tournamentId + " not found."));
+        List<String> teamStringList = entity.getTeams();
+
+        List<TeamDTO> teamDTOList = new ArrayList<>();
+
+        for(TeamDTO team : teamDTO) {
+            for(String teamName : teamStringList) {
+                if(team.name().equals(teamName)) {
+                    teamDTOList.add(team);
+                }
+            }
+        }
+
+        return teamDTOList;
     }
 
     @Override
