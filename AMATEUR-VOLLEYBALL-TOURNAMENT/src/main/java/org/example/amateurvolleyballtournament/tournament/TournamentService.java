@@ -26,6 +26,8 @@ public interface TournamentService {
 
     void updateMatchStadium(String matchId, String stadium);
 
+    void updateMatchScore(String matchId, int scoreA, int scoreB);
+
     void updateTournamentName(String tournamentId, String tournamentName);
 
     List<TeamDTO> getTeams(String tournamentId);

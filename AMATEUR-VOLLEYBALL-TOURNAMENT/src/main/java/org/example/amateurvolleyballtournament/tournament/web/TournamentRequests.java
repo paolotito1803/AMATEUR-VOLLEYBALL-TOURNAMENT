@@ -24,4 +24,6 @@ public class TournamentRequests {
     public record UpdateFreeSeatsRequest(String matchId, int newFreeSeats) {}
 
     public record UpdateTournamentNameRequest(String tournamentId, String tournamentName) {}
+
+    public record UpdateMatchScoresRequest(String matchId, int scoreA, int scoreB) {}
 }

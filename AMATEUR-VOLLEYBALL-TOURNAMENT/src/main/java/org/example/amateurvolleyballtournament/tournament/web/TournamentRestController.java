@@ -114,6 +114,12 @@ class TournamentRestController {
         return ResponseEntity.ok("Stadium updated successfully.");
     }
 
+    @PostMapping("/match/update_scores")
+    public  ResponseEntity<String> updateMatchScores(@RequestBody TournamentRequests.UpdateMatchScoresRequest request) {
+        tournamentService.updateMatchScore(request.matchId(), request.scoreA(), request.scoreB());
+        return ResponseEntity.ok("Match scores updated successfully.");
+    }
+
     // Also automatically manage matches creation for first stage
     @PostMapping("/create_tournament")
     public ResponseEntity<String> createTournament(@RequestBody TournamentRequests.CreateTournamentRequest request) {

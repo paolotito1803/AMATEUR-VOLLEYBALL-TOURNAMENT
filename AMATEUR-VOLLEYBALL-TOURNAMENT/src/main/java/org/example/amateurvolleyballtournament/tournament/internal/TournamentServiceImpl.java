@@ -308,6 +308,16 @@ class TournamentServiceImpl implements TournamentService {
         processMatchResult(matchId, winner);
     }
 
+    @Override
+    public void updateMatchScore(String matchId, int scoreA, int scoreB) {
+        MatchEntity entity = tournamentPersistence.findMatch(matchId)
+                .orElseThrow(() -> new RuntimeException("Error getting match with matchId: " + matchId));
+        entity.setScoreA(scoreA);
+        entity.setScoreB(scoreB);
+
+        tournamentPersistence.saveMatch(entity);
+    }
+
     private void processMatchResult(String matchId, String winner) {
         // Load Match
         MatchDTO currentMatch = getMatchInformation(matchId)
