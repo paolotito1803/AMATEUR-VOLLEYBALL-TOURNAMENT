@@ -3,6 +3,17 @@
 <head>
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+        .btn-group-custom {
+            display: flex;
+            gap: 0.25rem;
+        }
+    </style>
 </head>
 <body class="bg-light">
 
@@ -11,14 +22,14 @@
         <a href="/" class="btn btn-outline-secondary position-absolute top-0 start-0 m-3">
             <i class="bi bi-arrow-left"></i> Home
         </a>
-        <a class="navbar-brand" href="#">🏐 Admin Dashboard</a>
+        <a class="navbar-brand" href="#">🛠️ Admin Dashboard</a>
         <button onclick="logout()" class="btn btn-danger btn-sm">Logout</button>
     </div>
 </nav>
 
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-md-10">
             <div class="card shadow mb-5">
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">Create New Tournament</h4>
@@ -27,7 +38,7 @@
                     <!-- FORM CREAZIONE -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">Tournament Name</label>
-                        <input type="text" id="tName" class="form-control" placeholder="Es. Winter Cup 2024">
+                        <input type="text" id="tName" class="form-control" placeholder="e.g. Winter Cup 2024">
                     </div>
 
                     <div class="mb-3">
@@ -37,43 +48,65 @@
                                 <input class="form-check-input team-checkbox" type="checkbox" th:value="${team.name}">
                                 <label class="form-check-label" th:text="${team.name}"></label>
                             </div>
-                            <div th:if="${allTeams.isEmpty()}" class="text-danger small">No Teams founded.</div>
+                            <div th:if="${allTeams.isEmpty()}" class="text-danger small">No teams found.</div>
                         </div>
-                        <small class="text-muted" id="teamCount">0 selezionate</small>
+                        <small class="text-muted" id="teamCount">0 selected</small>
                     </div>
 
                     <div class="d-grid">
-                        <button onclick="createTournament()" class="btn btn-success">Tournament Generation</button>
+                        <button onclick="createTournament()" class="btn btn-success btn-lg">Generate Tournament</button>
                     </div>
                 </div>
             </div>
 
-            <!-- NUOVA SEZIONE: LISTA TORNEI ATTIVI -->
+            <!-- LISTA TORNEI ATTIVI -->
             <div class="card shadow">
                 <div class="card-header bg-dark text-white">
-                    <h4 class="mb-0">Active Tournament</h4>
+                    <h4 class="mb-0">Active Tournaments</h4>
                 </div>
                 <div class="card-body p-0">
-                    <table class="table table-striped mb-0">
-                        <thead>
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-light">
                         <tr>
-                            <th>Nome</th>
-                            <th class="text-end">Action</th>
+                            <th style="width: 50%;">Tournament Name</th>
+                            <th class="text-end">Actions</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <!-- Loop sui tornei passati dal controller -->
                         <tr th:each="t : ${tournaments}">
-                            <td th:text="${t.tournamentName}" class="align-middle fw-bold">Nome</td>
+                            <td class="align-middle">
+                                <strong th:text="${t.tournamentName}">Tournament Name</strong>
+                            </td>
                             <td class="text-end">
-                                <!-- LINK ALLA PAGINA DI GESTIONE -->
-                                <a th:href="@{/tournament/{id}/manage(id=${t.id})}" class="btn btn-warning btn-sm">
-                                    <i class="bi bi-whistle"></i> Assignement
-                                </a>
+                                <div class="action-buttons">
+                                    <!-- EDIT BUTTON (Manage/Assign) -->
+                                    <a th:href="@{/tournament/{id}/manage(id=${t.id})}"
+                                       class="btn btn-warning btn-sm"
+                                       title="Edit tournament settings">
+                                        <i class="bi bi-pencil-square"></i> Edit
+                                    </a>
+
+                                    <!-- VIEW BUTTON -->
+                                    <a th:href="@{/tournament/{id}/bracket_view(id=${t.id})}"
+                                       class="btn btn-primary btn-sm"
+                                       title="View tournament bracket">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+
+                                    <!-- DELETE BUTTON -->
+                                    <button class="btn btn-danger btn-sm"
+                                            th:data-id="${t.id}"
+                                            onclick="deleteTournament(this.getAttribute('data-id'))"
+                                            title="Delete tournament">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         <tr th:if="${tournaments.isEmpty()}">
-                            <td colspan="2" class="text-center text-muted">No Active Tournament.</td>
+                            <td colspan="2" class="text-center text-muted py-4">
+                                No active tournaments. Create one above!
+                            </td>
                         </tr>
                         </tbody>
                     </table>
@@ -88,13 +121,13 @@
     function logout() {
         localStorage.removeItem('jwt_token');
         localStorage.removeItem('user_info');
-        window.location.href = '/users/login';
+        window.location.href = '/';
     }
 
     document.querySelectorAll('.team-checkbox').forEach(cb => {
         cb.addEventListener('change', () => {
             const count = document.querySelectorAll('.team-checkbox:checked').length;
-            document.getElementById('teamCount').innerText = count + " selezionate";
+            document.getElementById('teamCount').innerText = count + " selected";
         });
     });
 
@@ -103,8 +136,14 @@
         const checkboxes = document.querySelectorAll('.team-checkbox:checked');
         const teamsList = Array.from(checkboxes).map(cb => cb.value);
 
-        if (!name) { alert("Inserisci nome!"); return; }
-        if (teamsList.length < 2) { alert("Seleziona min 2 squadre!"); return; }
+        if (!name) {
+            alert("Please enter a tournament name!");
+            return;
+        }
+        if (teamsList.length < 2) {
+            alert("Please select at least 2 teams!");
+            return;
+        }
 
         const requestBody = { tournamentName: name, teams: teamsList };
         const token = localStorage.getItem('jwt_token');
@@ -112,12 +151,46 @@
         if (token) headers['Authorization'] = 'Bearer ' + token;
 
         fetch('/api/tournaments/create_tournament', {
-            method: 'POST', headers: headers, body: JSON.stringify(requestBody)
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(requestBody)
         }).then(response => {
-            if (response.ok) { alert("Torneo creato!"); location.reload(); }
-            else response.text().then(t => alert("Errore: " + t));
-        }).catch(e => alert("Errore: " + e.message));
+            if (response.ok) {
+                alert("Tournament created successfully!");
+                location.reload();
+            } else {
+                response.text().then(t => alert("Error: " + t));
+            }
+        }).catch(e => alert("Error: " + e.message));
+    }
+
+    function deleteTournament(id) {
+        if (!confirm("Are you sure you want to delete this tournament? All matches will be lost.")) {
+            return;
+        }
+
+        const token = localStorage.getItem('jwt_token');
+        const headers = {};
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        fetch('/api/tournaments/delete/' + id, {
+            method: 'DELETE',
+            headers: headers
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert("Tournament deleted successfully!");
+                    location.reload();
+                } else {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+            })
+            .catch(error => alert("Error: " + error.message));
     }
 </script>
+
+<!-- Bootstrap Icons (se non già incluso) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
 </body>
 </html>

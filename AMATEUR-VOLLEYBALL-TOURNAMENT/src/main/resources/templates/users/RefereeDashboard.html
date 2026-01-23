@@ -5,12 +5,74 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
         .match-card {
-            border-left: 5px solid #ffc107; /* Giallo Arbitro */
+            border-left: 5px solid #ffc107;
             background-color: white;
             transition: transform 0.2s;
         }
         .match-card:hover { transform: translateY(-5px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .vs-badge { font-weight: bold; background: #212529; color: white; padding: 5px 10px; border-radius: 20px; }
+
+        .score-input-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .score-input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            max-width: 150px;
+        }
+
+        .team-label {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .score-input {
+            width: 100%;
+            font-size: 2rem;
+            font-weight: 800;
+            text-align: center;
+            padding: 0.5rem;
+            border: 3px solid #dee2e6;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .score-input:focus {
+            border-color: #ffc107;
+            box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+            outline: none;
+        }
+
+        .vs-separator {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #6c757d;
+            align-self: center;
+            margin-top: 2rem;
+        }
+
+        .winner-indicator {
+            margin-top: 0.5rem;
+            min-height: 24px;
+        }
+
+        .winner-badge {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -20,7 +82,7 @@
         <a href="/" class="btn btn-outline-secondary position-absolute top-0 start-0 m-3">
             <i class="bi bi-arrow-left"></i> Home
         </a>
-        <a class="navbar-brand" href="#">🏐 Referee Console</a>
+        <a class="navbar-brand" href="#">⚖️ Referee Console</a>
         <div class="d-flex align-items-center gap-3">
             <span id="ref-name" class="text-white fw-bold"></span>
             <button onclick="logout()" class="btn btn-danger btn-sm">Logout</button>
@@ -30,51 +92,79 @@
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3>Match</h3>
-        <button onclick="loadMatches()" class="btn btn-outline-primary btn-sm">🔄 Update</button>
+        <h3>My Matches</h3>
+        <button onclick="loadMatches()" class="btn btn-outline-primary btn-sm">🔄 Refresh</button>
     </div>
 
     <!-- ALERT se non ci sono partite -->
     <div id="no-matches-alert" class="alert alert-warning d-none text-center">
-        No Match at this moment.
+        No matches assigned at this moment.
     </div>
 
     <!-- CONTENITORE PARTITE -->
     <div id="matches-container" class="row">
         <div class="text-center py-5">
             <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2">Calendar Loading...</p>
+            <p class="mt-2">Loading matches...</p>
         </div>
     </div>
 </div>
 
-<!-- MODAL CONFERMA RISULTATO -->
-<div class="modal fade" id="resultModal" tabindex="-1">
+<!-- MODAL INSERIMENTO PUNTEGGIO -->
+<div class="modal fade" id="scoreModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-warning">
-                <h5 class="modal-title text-dark">Winner</h5>
+                <h5 class="modal-title text-dark">
+                    <i class="bi bi-clipboard-data me-2"></i>Enter Match Score
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body text-center">
-                <p class="mb-4 text-muted">Who win?</p>
-                <div class="row g-2">
-                    <div class="col-6">
-                        <button onclick="submitResult('A')" class="btn btn-outline-dark w-100 py-3 h-100">
-                            <h4 id="btnTeamA" class="mb-1 text-break">Team A</h4>
-                            <span class="badge bg-success">Winner</span>
-                        </button>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <small class="text-muted">Enter the score for this match</small>
+                </div>
+
+                <div class="score-input-container">
+                    <!-- Team A Score -->
+                    <div class="score-input-group">
+                        <div class="team-label text-primary" id="labelTeamA">Team A</div>
+                        <input type="number"
+                               id="scoreA"
+                               class="score-input"
+                               min="0"
+                               max="999"
+                               value="0"
+                               oninput="updateWinnerIndicator()">
+                        <div class="winner-indicator" id="winnerA"></div>
                     </div>
-                    <div class="col-6">
-                        <button onclick="submitResult('B')" class="btn btn-outline-dark w-100 py-3 h-100">
-                            <h4 id="btnTeamB" class="mb-1 text-break">Team B</h4>
-                            <span class="badge bg-success">Winner</span>
-                        </button>
+
+                    <!-- VS Separator -->
+                    <div class="vs-separator">:</div>
+
+                    <!-- Team B Score -->
+                    <div class="score-input-group">
+                        <div class="team-label text-danger" id="labelTeamB">Team B</div>
+                        <input type="number"
+                               id="scoreB"
+                               class="score-input"
+                               min="0"
+                               max="999"
+                               value="0"
+                               oninput="updateWinnerIndicator()">
+                        <div class="winner-indicator" id="winnerB"></div>
                     </div>
                 </div>
+
                 <input type="hidden" id="modalMatchId">
                 <input type="hidden" id="modalNameA">
                 <input type="hidden" id="modalNameB">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button onclick="submitScores()" class="btn btn-warning fw-bold">
+                    <i class="bi bi-check-circle me-1"></i>Save Score
+                </button>
             </div>
         </div>
     </div>
@@ -85,25 +175,23 @@
     // --- 1. SETUP & SICUREZZA ---
     const token = localStorage.getItem('jwt_token');
     const user = JSON.parse(localStorage.getItem('user_info'));
-    const modal = new bootstrap.Modal(document.getElementById('resultModal'));
+    const modal = new bootstrap.Modal(document.getElementById('scoreModal'));
 
     // Verifica Login
     if (!token || !user) {
         window.location.href = '/users/login';
     } else if (user.role !== 'REFEREE') {
-        alert("Accesso negato.");
-        window.location.href = '/users/login';
+        alert("Access denied. Referees only.");
+        window.location.href = '/';
     } else {
-        // Mostra il nome a video
         document.getElementById('ref-name').textContent = user.username;
-        console.log("LOGGED IN AS USERNAME:", user.username); // DEBUG
         loadMatches();
     }
 
     function logout() {
         localStorage.removeItem('jwt_token');
         localStorage.removeItem('user_info');
-        window.location.href = '/users/login';
+        window.location.href = '/';
     }
 
     // --- 2. CARICAMENTO DATI ---
@@ -113,7 +201,7 @@
                 headers: { 'Authorization': 'Bearer ' + token }
             });
 
-            if (!response.ok) throw new Error("Errore server");
+            if (!response.ok) throw new Error("Server error");
 
             const tournaments = await response.json();
             const container = document.getElementById('matches-container');
@@ -123,8 +211,6 @@
             alertBox.classList.add('d-none');
 
             let foundAny = false;
-
-            // Prendi lo username dell'utente loggato
             const myUsername = user.username.trim();
 
             tournaments.forEach(t => {
@@ -132,16 +218,8 @@
                     const sortedMatches = t.matches.sort((a, b) => a.matchIndex - b.matchIndex);
 
                     sortedMatches.forEach(m => {
-                        // Dato dal DB
                         const matchRef = m.referee ? m.referee.trim() : "";
-
-                        // DEBUG: Vedi cosa sta succedendo nella console
-                        console.log(`Match ${m.matchId}: RefDB='${matchRef}' vs Me='${myUsername}'`);
-
-                        // --- FILTRO: Controllo Esatto ---
                         const isMyMatch = (matchRef === myUsername);
-
-                        // Controlla che la partita sia giocabile
                         const isPlayable = (!m.winner || m.winner === "")
                             && m.teamA && m.teamB
                             && m.teamA !== 'BYE' && m.teamB !== 'BYE';
@@ -160,30 +238,26 @@
 
         } catch (error) {
             console.error(error);
-            alert("Impossibile caricare le partite.");
+            alert("Unable to load matches.");
         }
     }
 
     // --- 3. RENDER HTML ---
     function renderCard(match, tournamentName, container) {
-        // GESTIONE DATA ROBUSTA
-        let dateDisplay = '<span class="text-muted fst-italic">Data da definire</span>';
+        let dateDisplay = '<span class="text-muted fst-italic">Date to be determined</span>';
 
         if (match.matchDate) {
-            // Prova a creare la data
             const d = new Date(match.matchDate);
-            // Verifica se la data è valida
             if (!isNaN(d.getTime())) {
-                const day = d.toLocaleDateString('it-IT');
-                const time = d.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'});
-                dateDisplay = `<strong>${day}</strong> alle <strong>${time}</strong>`;
+                const day = d.toLocaleDateString('en-US');
+                const time = d.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
+                dateDisplay = `<strong>${day}</strong> at <strong>${time}</strong>`;
             }
         }
 
-        // GESTIONE STADIO
         const stadiumDisplay = match.stadium && match.stadium !== ""
             ? `<strong>${match.stadium}</strong>`
-            : '<span class="text-muted fst-italic">Stadio non assegnato</span>';
+            : '<span class="text-muted fst-italic">Stadium not assigned</span>';
 
         const html = `
             <div class="col-md-6 col-lg-4 mb-4">
@@ -215,8 +289,8 @@
 
                     <div class="card-footer bg-white border-top-0 pb-3">
                         <button class="btn btn-warning w-100 fw-bold shadow-sm"
-                                onclick="openModal('${match.matchId}', '${match.teamA}', '${match.teamB}')">
-                            ✏️ Inserisci Risultato
+                                onclick="openScoreModal('${match.matchId}', '${match.teamA}', '${match.teamB}', '${match.scoreA}', '${match.scoreB}')">
+                            ✏️ Enter Score
                         </button>
                     </div>
                 </div>
@@ -224,50 +298,99 @@
         `;
         container.innerHTML += html;
     }
-    
-    // --- 4. INVIO RISULTATO ---
-    function openModal(id, teamA, teamB) {
+
+    // --- 4. GESTIONE MODAL ---
+    function openScoreModal(id, teamA, teamB, scoreA, scoreB) {
         document.getElementById('modalMatchId').value = id;
         document.getElementById('modalNameA').value = teamA;
         document.getElementById('modalNameB').value = teamB;
-        document.getElementById('btnTeamA').innerText = teamA;
-        document.getElementById('btnTeamB').innerText = teamB;
+
+        document.getElementById('labelTeamA').textContent = teamA;
+        document.getElementById('labelTeamB').textContent = teamB;
+
+        // Reset scores
+        document.getElementById('scoreA').value = scoreA ?? 0;
+        document.getElementById('scoreB').value = scoreB ?? 0;
+
+        updateWinnerIndicator();
         modal.show();
     }
 
-    async function submitResult(winnerSide) {
+    function updateWinnerIndicator() {
+        const scoreA = parseInt(document.getElementById('scoreA').value) || 0;
+        const scoreB = parseInt(document.getElementById('scoreB').value) || 0;
+
+        const winnerADiv = document.getElementById('winnerA');
+        const winnerBDiv = document.getElementById('winnerB');
+
+        winnerADiv.innerHTML = '';
+        winnerBDiv.innerHTML = '';
+
+        if (scoreA > scoreB && scoreA > 0) {
+            winnerADiv.innerHTML = '<span class="winner-badge"><i class="bi bi-trophy-fill me-1"></i>Leading</span>';
+        } else if (scoreB > scoreA && scoreB > 0) {
+            winnerBDiv.innerHTML = '<span class="winner-badge"><i class="bi bi-trophy-fill me-1"></i>Leading</span>';
+        }
+    }
+
+    // --- 5. INVIO PUNTEGGIO ---
+    async function submitScores() {
         const matchId = document.getElementById('modalMatchId').value;
-        const winnerName = winnerSide === 'A'
-            ? document.getElementById('modalNameA').value
-            : document.getElementById('modalNameB').value;
+        const teamA = document.getElementById('modalNameA').value;
+        const teamB = document.getElementById('modalNameB').value;
+        const scoreA = parseInt(document.getElementById('scoreA').value) || 0;
+        const scoreB = parseInt(document.getElementById('scoreB').value) || 0;
 
-        if(!confirm(`Confermi la vittoria di: ${winnerName}?`)) return;
+        // Validation
+        if (scoreA === 0 && scoreB === 0) {
+            alert("Please enter valid scores (at least one team must score).");
+            return;
+        }
 
-        const requestBody = { matchId: matchId, winner: winnerName };
+        if (scoreA === scoreB) {
+            alert("Scores cannot be equal. There must be a winner.");
+            return;
+        }
+
+        // Determine winner
+        const winner = scoreA > scoreB ? teamA : teamB;
+
+        if (!confirm(`Confirm score: ${teamA} ${scoreA} - ${scoreB} ${teamB}\nLeading: ${winner}`)) {
+            return;
+        }
 
         try {
-            const res = await fetch('/api/tournaments/match/update_winner', {
+            // 1. Update scores
+            const scoresRequest = {
+                matchId: matchId,
+                scoreA: scoreA,
+                scoreB: scoreB
+            };
+
+            const scoresResponse = await fetch('/api/tournaments/match/update_scores', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token
                 },
-                body: JSON.stringify(requestBody)
+                body: JSON.stringify(scoresRequest)
             });
 
-            if (res.ok) {
-                alert("Risultato salvato!");
-                modal.hide();
-                loadMatches();
-            } else {
-                const txt = await res.text();
-                throw new Error(txt);
+            if (!scoresResponse.ok) {
+                throw new Error(await scoresResponse.text());
             }
+
+            alert("Score saved successfully!");
+            modal.hide();
+            loadMatches();
+
         } catch (e) {
-            alert("Errore: " + e.message);
+            alert("Error: " + e.message);
         }
     }
 </script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
 </body>
 </html>

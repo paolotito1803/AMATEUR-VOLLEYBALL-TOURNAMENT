@@ -27,11 +27,16 @@
         }
         .match-item {
             border-left: 4px solid var(--primary-color);
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             background: white;
-            padding: 1rem;
+            padding: 1.5rem;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+        .match-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
         }
         .stage-title {
             color: var(--primary-color);
@@ -46,13 +51,89 @@
             border-radius: 20px;
         }
         .score-display {
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             font-weight: 800;
             color: #2e59d9;
-            min-width: 60px;
+            min-width: 80px;
             text-align: center;
+            background: linear-gradient(135deg, #f8f9fc 0%, #e3e6f0 100%);
+            padding: 0.5rem;
+            border-radius: 8px;
         }
-        .winner-label { color: var(--success-color); font-weight: bold; font-size: 0.8rem; }
+        .winner-label {
+            color: var(--success-color);
+            font-weight: bold;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-top: 0.25rem;
+        }
+        .match-header {
+            background: linear-gradient(to right, #f8f9fc, transparent);
+            padding: 0.75rem 1rem;
+            margin: -1.5rem -1.5rem 1rem -1.5rem;
+            border-radius: 8px 8px 0 0;
+            border-bottom: 2px solid #e3e6f0;
+        }
+        .match-detail-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+        .match-detail-item:last-child {
+            border-bottom: none;
+        }
+        .match-detail-icon {
+            width: 28px;
+            height: 28px;
+            font-size: 0.75rem;
+            border-radius: 6px;
+        }
+        .match-detail-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--secondary-color);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .match-detail-value {
+            font-size: 0.95rem;
+            color: #2e3338;
+            font-weight: 500;
+        }
+        .seats-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .seats-available {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .seats-low {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .seats-full {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .team-vs-section {
+            background-color: #f8f9fc;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .vs-divider {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--secondary-color);
+            padding: 0 1rem;
+        }
     </style>
 </head>
 <body>
@@ -60,9 +141,6 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
         <a class="navbar-brand" href="/"><i class="fas fa-volleyball-ball me-2"></i>Volleyball Central</a>
-        <div class="navbar-nav ms-auto">
-            <a href="/tournament/manager" class="nav-link">Tournament Manager</a>
-        </div>
     </div>
 </nav>
 
@@ -120,38 +198,117 @@
                 </h4>
 
                 <div th:each="match : ${entry.value}" class="match-item">
-                    <div class="row align-items-center text-center text-md-start">
-                        <div class="col-md-2 text-muted small mb-2 mb-md-0">
-                            <strong>MATCH #[[${match.matchIndex}]]</strong><br>
-                            <span th:text="${match.stadium != null ? match.stadium : 'TBD'}">Stadium</span>
-                        </div>
-
-                        <div class="col-md-3">
-                            <div class="fw-bold" th:text="${match.teamA != null ? match.teamA : 'TBD'}">Team A</div>
-                            <span th:if="${match.winner != null && match.winner == match.teamA}" class="winner-label">
-                                <i class="fas fa-trophy"></i> WINNER
+                    <!-- Match Header -->
+                    <div class="match-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong class="text-primary"><i class="fas fa-hashtag me-1"></i>Match [[${match.matchIndex}]]</strong>
+                            <span th:if="${match.winner != null && match.winner != ''}"
+                                  class="badge bg-success">
+                                <i class="fas fa-trophy me-1"></i>Completed
+                            </span>
+                            <span th:unless="${match.winner != null && match.winner != ''}"
+                                  class="badge bg-warning text-dark">
+                                <i class="fas fa-clock me-1"></i>Upcoming
                             </span>
                         </div>
+                    </div>
 
-                        <div class="col-md-2 text-center py-2 py-md-0">
-                            <div class="score-display">
-                                [[${match.scoreA}]] - [[${match.scoreB}]]
+                    <!-- Teams VS Section -->
+                    <div class="team-vs-section">
+                        <div class="row align-items-center text-center">
+                            <div class="col-5">
+                                <div class="fw-bold fs-5" th:text="${match.teamA != null ? match.teamA : 'TBD'}">Team A</div>
+                                <span th:if="${match.winner != null && match.winner == match.teamA}" class="winner-label">
+                                    <i class="fas fa-trophy"></i> WINNER
+                                </span>
                             </div>
-                            <div class="small text-muted" th:text="${#temporals.format(match.matchDate, 'MMM dd, HH:mm')}">Date</div>
+
+                            <div class="col-2">
+                                <div class="score-display">
+                                    [[${match.scoreA}]] : [[${match.scoreB}]]
+                                </div>
+                                <small class="text-muted fw-bold">VS</small>
+                            </div>
+
+                            <div class="col-5">
+                                <div class="fw-bold fs-5" th:text="${match.teamB != null ? match.teamB : 'TBD'}">Team B</div>
+                                <span th:if="${match.winner != null && match.winner == match.teamB}" class="winner-label">
+                                    <i class="fas fa-trophy"></i> WINNER
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Match Details Grid -->
+                    <div class="row mt-3">
+                        <!-- Stadium -->
+                        <div class="col-md-6">
+                            <div class="match-detail-item">
+                                <div class="match-detail-icon">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div>
+                                    <div class="match-detail-label">Stadium</div>
+                                    <div class="match-detail-value" th:text="${match.stadium != null && match.stadium != '' ? match.stadium : 'Not Assigned'}">Stadium Name</div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="col-md-3">
-                            <div class="fw-bold" th:text="${match.teamB != null ? match.teamB : 'TBD'}">Team B</div>
-                            <span th:if="${match.winner != null && match.winner == match.teamB}" class="winner-label">
-                                <i class="fas fa-trophy"></i> WINNER
-                            </span>
+                        <!-- Referee -->
+                        <div class="col-md-6">
+                            <div class="match-detail-item">
+                                <div class="match-detail-icon">
+                                    <i class="fas fa-user-tie"></i>
+                                </div>
+                                <div>
+                                    <div class="match-detail-label">Referee</div>
+                                    <div class="match-detail-value" th:text="${match.referee != null && match.referee != '' ? match.referee : 'Not Assigned'}">Referee Name</div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="col-md-2 text-md-end mt-3 mt-md-0">
-                            <span th:if="${match.freeSeats > 0}" class="badge bg-success">
-                                [[${match.freeSeats}]] seats left
-                            </span>
-                            <span th:unless="${match.freeSeats > 0}" class="badge bg-danger">Sold Out</span>
+                        <!-- Date & Time -->
+                        <div class="col-md-6">
+                            <div class="match-detail-item">
+                                <div class="match-detail-icon">
+                                    <i class="fas fa-calendar-day"></i>
+                                </div>
+                                <div>
+                                    <div class="match-detail-label">Date & Time</div>
+                                    <div class="match-detail-value"
+                                         th:text="${match.matchDate != null ? #temporals.format(match.matchDate, 'MMM dd, yyyy - HH:mm') : 'To Be Determined'}">
+                                        Date
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Available Seats -->
+                        <div class="col-md-6">
+                            <div class="match-detail-item">
+                                <div class="match-detail-icon">
+                                    <i class="fas fa-ticket-alt"></i>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between w-100">
+                                    <div>
+                                        <div class="match-detail-label">Available Seats</div>
+                                        <div class="match-detail-value">
+                                            <span th:text="${match.freeSeats}">0</span> seats
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span th:if="${match.freeSeats > 50}" class="seats-badge seats-available">
+                                            <i class="fas fa-check-circle me-1"></i>Available
+                                        </span>
+                                        <span th:if="${match.freeSeats > 0 && match.freeSeats <= 50}" class="seats-badge seats-low">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Low Stock
+                                        </span>
+                                        <span th:if="${match.freeSeats <= 0}" class="seats-badge seats-full">
+                                            <i class="fas fa-times-circle me-1"></i>Sold Out
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

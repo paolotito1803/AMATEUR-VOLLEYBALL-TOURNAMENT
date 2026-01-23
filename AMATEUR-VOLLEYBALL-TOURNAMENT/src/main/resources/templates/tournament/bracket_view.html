@@ -228,7 +228,7 @@
                 </p>
             </div>
             <div>
-                <a href="#" onclick="goBack()" class="btn btn-light">
+                <a th:href="@{/tournament/{id}/view(id=${tournament.id})}" class="btn btn-light">
                     ← Back to Tournament
                 </a>
             </div>
@@ -310,14 +310,6 @@
         localStorage.removeItem('jwt_token');
         localStorage.removeItem('user_info');
         window.location.href = '/';
-    }
-
-    function goBack() {
-        if(tournamentData && tournamentData.id) {
-            window.location.href = `/tournament/${tournamentData.id}/view`;
-        } else {
-            window.location.href = '/';
-        }
     }
 
     // Main initialization
