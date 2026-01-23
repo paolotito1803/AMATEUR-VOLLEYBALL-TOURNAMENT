@@ -3,14 +3,20 @@
 <head>
     <title>Coach Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <!-- Icone Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
 <body class="bg-light">
+
+<!-- NAVBAR -->
 <nav class="navbar navbar-dark bg-primary mb-5">
     <div class="container">
-        <a href="/" class="btn btn-outline-secondary position-absolute top-0 start-0 m-3">
+        <!-- Pulsante Home -->
+        <a href="/" class="btn btn-outline-light position-absolute top-0 start-0 m-3" style="z-index: 1000;">
             <i class="bi bi-arrow-left"></i> Home
         </a>
-        <a class="navbar-brand" href="#">🏐 Coach Dashboard</a>
+
+        <a class="navbar-brand ms-5" href="#">🏐 Coach Dashboard</a>
         <div class="d-flex align-items-center gap-3">
             <span id="nav-user" class="text-white fw-bold"></span>
             <button onclick="logout()" class="btn btn-outline-light btn-sm">Logout</button>
@@ -20,7 +26,7 @@
 
 <div class="container">
 
-    <!-- LOADING -->
+    <!-- LOADING SPINNER -->
     <div id="loading" class="text-center py-5">
         <div class="spinner-border text-primary" role="status"></div>
     </div>
@@ -30,8 +36,8 @@
         <div class="col-md-6">
             <div class="card shadow">
                 <div class="card-header bg-white">
-                    <h4>Welcome Coach!</h4>
-                    <p class="text-muted mb-0">Create Team</p>
+                    <h4>Benvenuto Coach!</h4>
+                    <p class="text-muted mb-0">You don't have a teams, creates.</p>
                 </div>
                 <div class="card-body">
                     <form onsubmit="registerTeam(event)">
@@ -49,11 +55,26 @@
     <!-- VISTA 2: GESTIONE SQUADRA (Se il coach ha già una squadra) -->
     <div id="management-view" class="d-none">
 
-        <!-- Intestazione Squadra -->
+        <!-- HEADER SQUADRA + INFO STADIO -->
         <div class="card shadow mb-4 border-primary">
             <div class="card-body">
-                <h2 id="teamNameDisplay" class="mb-0 text-primary fw-bold">Team Name</h2>
-                <p class="text-muted mb-0">Coach: <span id="coachNameDisplay"></span></p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 id="teamNameDisplay" class="mb-0 text-primary fw-bold">Team Name</h2>
+                        <p class="text-muted mb-0">Coach: <span id="coachNameDisplay"></span></p>
+
+                        <!-- Visualizzazione Stadio -->
+                        <div class="mt-2">
+                            <i class="bi bi-geo-alt-fill text-danger"></i>
+                            <span class="badge bg-secondary ms-1" id="stadiumDisplay">Stadium not assigned</span>
+                        </div>
+                    </div>
+
+                    <!-- PULSANTE MODIFICA STADIO -->
+                    <button class="btn btn-outline-primary" onclick="openStadiumModal()">
+                        <i class="bi bi-pencil-square"></i> Update Stadium
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -75,10 +96,9 @@
                                 <input type="number" id="pNum" class="form-control" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Role</label>
-                                <!-- I valori devono coincidere con l'ENUM Java VolleyballRole -->
+                                <label class="form-label">Ruolo</label>
                                 <select id="pRole" class="form-select" required>
-                                    <option value="PLAYER">Wing Spiker (Player)</option>
+                                    <option value="PLAYER">Spiker (Player)</option>
                                     <option value="SETTER">Setter (Setter)</option>
                                     <option value="LIBERO">Libero</option>
                                 </select>
@@ -93,23 +113,23 @@
             <div class="col-md-8">
                 <div class="card shadow">
                     <div class="card-header">
-                        <h5 class="mb-0">Rosa Squadra</h5>
+                        <h5 class="mb-0">Team</h5>
                     </div>
                     <div class="card-body p-0">
-                        <table class="table table-striped mb-0">
+                        <table class="table table-striped mb-0 align-middle">
                             <thead class="table-light">
                             <tr>
                                 <th>N°</th>
-                                <th>Nome</th>
-                                <th>Ruolo</th>
+                                <th>Name</th>
+                                <th>Role</th>
                             </tr>
                             </thead>
                             <tbody id="players-table-body">
-                            <!-- Riempito via JS -->
+                            <!-- JS riempirà qui -->
                             </tbody>
                         </table>
                         <div id="empty-roster-msg" class="text-center p-3 text-muted d-none">
-                            Nessun giocatore inserito.
+                            No Player.
                         </div>
                     </div>
                 </div>
@@ -118,37 +138,62 @@
     </div>
 </div>
 
+<!-- MODAL PER MODIFICA STADIO -->
+<div class="modal fade" id="stadiumModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Stadium management</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="updateStadium(event)">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" id="sName" class="form-control" required placeholder="Es. PalaVolley">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Available Seats</label>
+                        <input type="number" id="sSeats" class="form-control" required min="10" placeholder="Es. 500">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-    // --- SETUP ---
+    // --- CONFIGURAZIONE ---
     const token = localStorage.getItem('jwt_token');
     const user = JSON.parse(localStorage.getItem('user_info'));
+    const stadiumModal = new bootstrap.Modal(document.getElementById('stadiumModal'));
 
-    // Controlli di sicurezza
-    if (!token || !user) window.location.href = '/users/login';
-    if (user.role !== 'COACH') {
-        alert("Accesso negato: Non sei un Coach.");
+    // --- CONTROLLI SICUREZZA ---
+    if (!token || !user) {
         window.location.href = '/users/login';
+    } else if (user.role !== 'COACH') {
+        alert("Accesso negato.");
+        window.location.href = '/users/login';
+    } else {
+        document.getElementById('nav-user').textContent = user.username;
     }
 
-    document.getElementById('nav-user').textContent = user.username;
-
-    // --- INIZIALIZZAZIONE ---
+    // --- AVVIO ---
     document.addEventListener('DOMContentLoaded', init);
 
     async function init() {
         try {
-            // 1. Scarichiamo TUTTI i team (poiché non c'è un endpoint di ricerca specifico)
+            // Nota: l'HTML è in /users, ma i dati vengono da /api/teams
             const res = await fetch('/api/teams', {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
-
             document.getElementById('loading').classList.add('d-none');
 
             if (res.ok) {
                 const allTeams = await res.json();
-
-                // 2. Cerchiamo in JS se c'è un team che appartiene a questo coach
-                // user.id viene dal login, t.coachId viene dal DTO del team
                 const myTeam = allTeams.find(t => t.coachId === user.id);
 
                 if (myTeam) {
@@ -157,15 +202,15 @@
                     document.getElementById('registration-view').classList.remove('d-none');
                 }
             } else {
-                console.error("Errore nel caricamento dei team");
+                console.error("Error fetch team");
             }
         } catch (e) {
             console.error(e);
-            alert("Errore di connessione.");
+            alert("Connection Error.");
         }
     }
 
-    // --- RENDER ---
+    // --- FUNZIONI DI RENDER ---
     function renderDashboard(team) {
         document.getElementById('registration-view').classList.add('d-none');
         document.getElementById('management-view').classList.remove('d-none');
@@ -173,11 +218,17 @@
         document.getElementById('teamNameDisplay').textContent = team.name;
         document.getElementById('coachNameDisplay').textContent = team.coachName;
 
+        // Gestione Stadio
         if (team.stadium) {
             document.getElementById('stadiumDisplay').textContent =
-                `Stadio: ${team.stadium.name} (${team.stadium.maxSeats} posti)`;
+                `${team.stadium.name} (${team.stadium.maxSeats} posti)`;
+
+            // Pre-compila i campi del modale
+            document.getElementById('sName').value = team.stadium.name;
+            document.getElementById('sSeats').value = team.stadium.maxSeats;
         }
 
+        // Tabella Giocatori
         const tbody = document.getElementById('players-table-body');
         tbody.innerHTML = '';
 
@@ -185,27 +236,62 @@
             document.getElementById('empty-roster-msg').classList.remove('d-none');
         } else {
             document.getElementById('empty-roster-msg').classList.add('d-none');
-
-            // Ordina i giocatori per numero
             team.players.sort((a,b) => a.number - b.number).forEach(p => {
-                const row = `
-                    <tr>
+                const row = `<tr>
                         <td class="fw-bold">${p.number}</td>
                         <td>${p.name}</td>
                         <td><span class="badge bg-info text-dark">${p.role}</span></td>
-                    </tr>
-                `;
+                    </tr>`;
                 tbody.innerHTML += row;
             });
         }
     }
 
-    // --- AZIONE: REGISTRA SQUADRA ---
+    // --- AZIONI JAVASCRIPT ---
+
+    function openStadiumModal() {
+        stadiumModal.show();
+    }
+
+    async function updateStadium(e) {
+        e.preventDefault();
+        const stadiumName = document.getElementById('sName').value;
+        const maxSeats = parseInt(document.getElementById('sSeats').value);
+
+        const body = {
+            coachId: user.id,
+            stadium: {
+                name: stadiumName,
+                maxSeats: maxSeats
+            }
+        };
+
+        try {
+            const res = await fetch('/api/teams/updateStadium', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (res.ok) {
+                alert("Updated Stadium!");
+                location.reload();
+            } else {
+                const txt = await res.text();
+                alert("Updating Error: " + txt);
+            }
+        } catch (err) {
+            alert("Connection Error: " + err.message);
+        }
+    }
+
     async function registerTeam(e) {
         e.preventDefault();
         const name = document.getElementById('regTeamName').value;
 
-        // DTO atteso da RegisterTeamRequest
         const body = {
             coachId: user.id,
             coachName: user.username + " " + user.surname,
@@ -214,45 +300,29 @@
 
         const res = await fetch('/api/teams/register', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
             body: JSON.stringify(body)
         });
-
-        if (res.ok) {
-            alert("Squadra creata!");
-            location.reload();
-        } else {
-            alert("Errore: Probabilmente il nome della squadra esiste già.");
-        }
+        if (res.ok) location.reload();
+        else alert("Error team creation");
     }
 
-    // --- AZIONE: AGGIUNGI GIOCATORE ---
     async function addPlayer(e) {
         e.preventDefault();
-
         const playerDto = {
             name: document.getElementById('pName').value,
             number: parseInt(document.getElementById('pNum').value),
             role: document.getElementById('pRole').value
         };
 
-        // Chiamata al NUOVO endpoint aggiunto nel controller: /api/teams/{coachId}/players
         const res = await fetch(`/api/teams/${user.id}/players`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
             body: JSON.stringify(playerDto)
         });
 
-        if (res.ok) {
-            alert("Giocatore aggiunto!");
-            location.reload();
-        } else {
+        if (res.ok) location.reload();
+        else {
             const txt = await res.text();
             alert("Errore: " + txt);
         }

@@ -51,17 +51,28 @@ class TournamentWebController {
 
     @GetMapping("/{id}/manage")
     public String showTournamentManagement(@PathVariable String id, Model model) {
-        // Recupera i dettagli del torneo (match inclusi)
+        // 1. Recupera il Torneo
         var tournament = tournamentService.getTournamentDetails(id)
                 .orElseThrow(() -> new IllegalArgumentException("Torneo non trovato"));
 
-        // Recupera la lista degli arbitri
+        // 2. Recupera gli Arbitri
         var referees = usersService.listUsersByRole("REFEREE");
+
+        // 3. RECUPERA GLI STADI (Estraendoli dai Team esistenti)
+
+        var stadiums = teamService.getAllTeams().stream()
+                .map(team -> team.stadium())
+                .filter(stadium -> stadium != null)
+                .map(stadium -> stadium.name())
+                .filter(name -> name != null && !name.isEmpty())
+                .distinct()
+                .toList();
 
         model.addAttribute("tournament", tournament);
         model.addAttribute("referees", referees);
+        model.addAttribute("stadiums", stadiums);
 
-        return "tournament/tournament_details"; // File nuovo che creiamo sotto
+        return "tournament/tournament_details";
     }
 
     // Visualise tournament brackets

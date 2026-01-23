@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Referee Management</title>
+    <title>Match Management</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
@@ -10,17 +10,17 @@
 <nav class="navbar navbar-dark bg-dark mb-4">
     <div class="container">
         <a href="/tournament/admin_dashboard" class="btn btn-outline-light btn-sm">
-            <i class="bi bi-arrow-left"></i> Back
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
         </a>
         <span class="navbar-text text-white fw-bold fs-5" th:text="${tournament.tournamentName}">Tournament Name</span>
         <button onclick="logout()" class="btn btn-danger btn-sm">Logout</button>
     </div>
 </nav>
 
-<div class="container">
+<div class="container-fluid px-4">
     <div class="card shadow">
         <div class="card-header bg-warning text-dark">
-            <h5 class="mb-0"><i class="bi bi-whistle"></i> Match-Referee</h5>
+            <h5 class="mb-0"><i class="bi bi-gear-fill"></i> Match Management & Assignment</h5>
         </div>
         <div class="card-body">
 
@@ -28,49 +28,67 @@
                 <table class="table table-hover align-middle border">
                     <thead class="table-light">
                     <tr>
-                        <th>Match #</th>
-                        <th>Team A</th>
-                        <th>Team B</th>
-                        <th>Stadium</th>
-                        <th style="width: 30%;">Referee Assignment</th>
-                        <th>Save</th>
+                        <th style="width: 5%">#</th>
+                        <th style="width: 15%">Team A</th>
+                        <th style="width: 15%">Team B</th>
+                        <th style="width: 20%">Date & Time</th>
+                        <th style="width: 20%">Stadium</th>
+                        <th style="width: 20%">Referee</th>
+                        <th style="width: 5%">Action</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:each="match : ${tournament.matches}">
+                        <!-- Match Index -->
                         <td><span class="badge bg-secondary" th:text="${match.matchIndex}">1</span></td>
 
+                        <!-- Teams -->
                         <td class="fw-bold text-primary" th:text="${match.teamA != null && match.teamA != '' ? match.teamA : 'TBD'}">A</td>
                         <td class="fw-bold text-danger" th:text="${match.teamB != null && match.teamB != '' ? match.teamB : 'TBD'}">B</td>
 
-                        <td th:text="${match.stadium != null && match.stadium != '' ? match.stadium : '-'}">Stadio</td>
-
-                        <!-- TENDINA ARBITRI -->
+                        <!-- DATE INPUT -->
                         <td>
-                            <select class="form-select form-select-sm" th:id="'ref-' + ${match.matchId}">
-                                <option value="" th:selected="${match.referee == null || match.referee == ''}">-- Seleziona --</option>
+                            <input type="datetime-local" class="form-control form-control-sm"
+                                   th:id="'date-' + ${match.matchId}"
+                                   th:value="${match.matchDate}">
+                        </td>
 
-                                <!-- Popolato da UsersService -->
-                                <option th:each="ref : ${referees}"
-                                        th:value="${ref.username}"
-                                        th:text="${ref.surname} + ' ' + ${ref.username}"
-                                        th:selected="${match.referee == ref.username}">
-                                    Rossi Mario
+                        <!-- STADIUM SELECT (MODIFICATO) -->
+                        <td>
+                            <select class="form-select form-select-sm" th:id="'stadium-' + ${match.matchId}">
+                                <option value="" th:selected="${match.stadium == null || match.stadium == ''}">-- Select Stadium --</option>
+
+                                <!-- Popolato dalla lista 'stadiums' passata dal Controller -->
+                                <option th:each="std : ${stadiums}"
+                                        th:value="${std}"
+                                        th:text="${std}"
+                                        th:selected="${match.stadium == std}">
+                                    PalaVolley
                                 </option>
                             </select>
                         </td>
 
-                        <!-- BOTTONE SALVA (CORRETTO) -->
+                        <!-- REFEREE SELECT -->
                         <td>
-                            <!--
-                                FIX APPLICATO:
-                                1. Usiamo th:data-match-id per iniettare l'ID in modo sicuro.
-                                2. Usiamo onclick standard per leggere quell'attributo.
-                            -->
-                            <button class="btn btn-success btn-sm"
+                            <select class="form-select form-select-sm" th:id="'ref-' + ${match.matchId}">
+                                <option value="" th:selected="${match.referee == null || match.referee == ''}">-- None --</option>
+
+                                <!-- List populated by UsersService -->
+                                <option th:each="ref : ${referees}"
+                                        th:value="${ref.username}"
+                                        th:text="${ref.surname} + ' ' + ${ref.username}"
+                                        th:selected="${match.referee == ref.username}">
+                                    Doe John
+                                </option>
+                            </select>
+                        </td>
+
+                        <!-- SAVE BUTTON -->
+                        <td>
+                            <button class="btn btn-success btn-sm w-100"
                                     th:data-match-id="${match.matchId}"
-                                    onclick="saveReferee(this.getAttribute('data-match-id'))">
-                                <i class="bi bi-save"></i>
+                                    onclick="saveMatchDetails(this.getAttribute('data-match-id'))">
+                                <i class="bi bi-save"></i> Save
                             </button>
                         </td>
                     </tr>
@@ -89,51 +107,76 @@
         window.location.href = '/users/login';
     }
 
-    function saveReferee(matchId) {
-        const selectBox = document.getElementById('ref-' + matchId);
-        const newRef = selectBox.value;
-
-        if (!newRef) {
-            if(!confirm("Stai rimuovendo l'arbitro da questo match. Continuare?")) return;
-        }
-
-        const body = {
-            matchId: matchId,
-            newReferee: newRef
-        };
-
+    // Function to handle multiple updates (Referee, Date, Stadium)
+    async function saveMatchDetails(matchId) {
         const token = localStorage.getItem('jwt_token');
         const headers = { 'Content-Type': 'application/json' };
         if(token) headers['Authorization'] = 'Bearer ' + token;
 
-        // Endpoint per aggiornare l'arbitro
-        fetch('/api/tournaments/match/update_referee', {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify(body)
-        })
-            .then(res => {
-                if(res.ok) {
-                    // Feedback visivo (Selettore aggiornato per usare data-match-id)
-                    const btn = document.querySelector(`button[data-match-id='${matchId}']`);
-                    if(btn) {
-                        const originalHtml = btn.innerHTML;
-                        btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> OK';
-                        btn.classList.remove('btn-success');
-                        btn.classList.add('btn-dark');
-                        setTimeout(() => {
-                            btn.innerHTML = originalHtml;
-                            btn.classList.add('btn-success');
-                            btn.classList.remove('btn-dark');
-                        }, 2000);
-                    } else {
-                        alert("Arbitro assegnato con successo!");
-                    }
-                } else {
-                    res.text().then(t => alert("Errore: " + t));
+        // 1. Get Values from Inputs
+        const referee = document.getElementById('ref-' + matchId).value;
+        const stadium = document.getElementById('stadium-' + matchId).value; // Prende il valore della Select
+        const date = document.getElementById('date-' + matchId).value;
+
+        // Prepare the promises for API calls
+        const requests = [];
+
+        // A. Update Referee
+        const bodyRef = { matchId: matchId, newReferee: referee };
+        requests.push(fetch('/api/tournaments/match/update_referee', {
+            method: 'POST', headers: headers, body: JSON.stringify(bodyRef)
+        }));
+
+        // B. Update Stadium
+        if (stadium) {
+            const bodyStadium = { matchId: matchId, newStadium: stadium };
+            // Usa 'update_statium' se il tuo backend ha ancora il typo, altrimenti 'update_stadium'
+            requests.push(fetch('/api/tournaments/match/update_statium', {
+                method: 'POST', headers: headers, body: JSON.stringify(bodyStadium)
+            }));
+        }
+
+        // C. Update Date
+        if (date) {
+            const bodyDate = { matchId: matchId, newDate: date };
+            requests.push(fetch('/api/tournaments/match/update_date', {
+                method: 'POST', headers: headers, body: JSON.stringify(bodyDate)
+            }));
+        }
+
+        // Execute all requests
+        try {
+            const responses = await Promise.all(requests);
+
+            let hasError = false;
+            for (const r of responses) {
+                if (!r.ok) {
+                    hasError = true;
+                    const text = await r.text();
+                    console.error("API Error:", text);
                 }
-            })
-            .catch(e => alert("Errore connessione: " + e));
+            }
+
+            if (!hasError) {
+                const btn = document.querySelector(`button[data-match-id='${matchId}']`);
+                if(btn) {
+                    const originalHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Saved';
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-dark');
+                    setTimeout(() => {
+                        btn.innerHTML = originalHtml;
+                        btn.classList.add('btn-success');
+                        btn.classList.remove('btn-dark');
+                    }, 2000);
+                }
+            } else {
+                alert("Some errors occurred while saving. Check console.");
+            }
+
+        } catch (e) {
+            alert("Connection Error: " + e);
+        }
     }
 </script>
 
