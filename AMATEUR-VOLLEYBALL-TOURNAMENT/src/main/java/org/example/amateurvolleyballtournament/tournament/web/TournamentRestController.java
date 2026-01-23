@@ -108,11 +108,10 @@ class TournamentRestController {
                 + request.newFreeSeats());
     }
 
-    @PostMapping("/match/update_statium")
+    @PostMapping("/match/update_stadium")
     public ResponseEntity<String> updateMatchStadium(@RequestBody TournamentRequests.UpdateStadiumRequest request) {
         tournamentService.updateMatchStadium(request.matchId(), request.newStadium());
-        // TODO: update seats and date if stadium gets changed
-        return ResponseEntity.ok("Stadium " + request.newStadium() + " updated successfully.");
+        return ResponseEntity.ok("Stadium updated successfully.");
     }
 
     // Also automatically manage matches creation for first stage

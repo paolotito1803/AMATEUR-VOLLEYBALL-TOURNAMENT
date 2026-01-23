@@ -107,21 +107,32 @@
         window.location.href = '/users/login';
     }
 
-    // Function to handle multiple updates (Referee, Date, Stadium)
     async function saveMatchDetails(matchId) {
         const token = localStorage.getItem('jwt_token');
         const headers = { 'Content-Type': 'application/json' };
         if(token) headers['Authorization'] = 'Bearer ' + token;
 
-        // 1. Get Values from Inputs
-        const referee = document.getElementById('ref-' + matchId).value;
-        const stadium = document.getElementById('stadium-' + matchId).value; // Prende il valore della Select
-        const date = document.getElementById('date-' + matchId).value;
+        // 1. Recupera gli elementi dal DOM
+        const refSelect = document.getElementById('ref-' + matchId);
+        const stadiumInput = document.getElementById('stadium-' + matchId);
+        const dateInput = document.getElementById('date-' + matchId);
 
-        // Prepare the promises for API calls
+        // 2. Leggi i valori
+        const referee = refSelect ? refSelect.value : "";
+        const stadium = stadiumInput ? stadiumInput.value : "";
+        const date = dateInput ? dateInput.value : "";
+
+        // DEBUG: Vediamo cosa stiamo per inviare
+        console.log(`Saving Match ${matchId}: Ref='${referee}', Stadium='${stadium}', Date='${date}'`);
+
+        // CONTROLLO DI SICUREZZA
+        if (referee === "") {
+            if(!confirm("ATTENZIONE: Stai salvando la partita SENZA ARBITRO. Sei sicuro?")) return;
+        }
+
         const requests = [];
 
-        // A. Update Referee
+        // A. Update Referee (Lo inviamo sempre, anche se vuoto, per permettere la rimozione)
         const bodyRef = { matchId: matchId, newReferee: referee };
         requests.push(fetch('/api/tournaments/match/update_referee', {
             method: 'POST', headers: headers, body: JSON.stringify(bodyRef)
@@ -130,21 +141,20 @@
         // B. Update Stadium
         if (stadium) {
             const bodyStadium = { matchId: matchId, newStadium: stadium };
-            // Usa 'update_statium' se il tuo backend ha ancora il typo, altrimenti 'update_stadium'
-            requests.push(fetch('/api/tournaments/match/update_statium', {
+            // CORREGGI L'URL QUI SE NECESSARIO: /api/tournaments/match/update_stadium
+            requests.push(fetch('/api/tournaments/match/update_stadium', {
                 method: 'POST', headers: headers, body: JSON.stringify(bodyStadium)
             }));
         }
 
-        // C. Update Date
-        if (date) {
+        // C. Update Date (Solo se presente)
+        if (dateInput && date) {
             const bodyDate = { matchId: matchId, newDate: date };
             requests.push(fetch('/api/tournaments/match/update_date', {
                 method: 'POST', headers: headers, body: JSON.stringify(bodyDate)
             }));
         }
 
-        // Execute all requests
         try {
             const responses = await Promise.all(requests);
 
@@ -153,29 +163,26 @@
                 if (!r.ok) {
                     hasError = true;
                     const text = await r.text();
-                    console.error("API Error:", text);
+                    alert("Errore Server: " + text);
                 }
             }
 
             if (!hasError) {
+                // Feedback Visivo
                 const btn = document.querySelector(`button[data-match-id='${matchId}']`);
                 if(btn) {
-                    const originalHtml = btn.innerHTML;
-                    btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Saved';
                     btn.classList.remove('btn-success');
                     btn.classList.add('btn-dark');
+                    btn.innerHTML = '<i class="bi bi-check-lg"></i> Saved';
                     setTimeout(() => {
-                        btn.innerHTML = originalHtml;
                         btn.classList.add('btn-success');
                         btn.classList.remove('btn-dark');
+                        btn.innerHTML = '<i class="bi bi-save"></i> Save';
                     }, 2000);
                 }
-            } else {
-                alert("Some errors occurred while saving. Check console.");
             }
-
         } catch (e) {
-            alert("Connection Error: " + e);
+            alert("Errore di connessione: " + e);
         }
     }
 </script>

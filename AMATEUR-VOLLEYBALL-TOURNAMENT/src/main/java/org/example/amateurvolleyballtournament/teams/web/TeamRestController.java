@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+record UpdateStadiumRequest(String coachId, StadiumDTO stadium) {}
+
 // For Testing
 @RestController
 @RequestMapping("/api/teams") // This is the address: http://localhost:8080/api/teams
@@ -135,5 +137,15 @@ class TeamRestController {
 
         teamService.addPlayer(coachId, player);
         return ResponseEntity.ok("Player added");
+    }
+
+    @PostMapping("/update_stadium")
+    public ResponseEntity<String> updateStadium(@RequestBody UpdateStadiumRequest request) {
+        try {
+            teamService.updateStadium(request.coachId(), request.stadium());
+            return ResponseEntity.ok("Stadium updated successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error updating stadium: " + e.getMessage());
+        }
     }
 }

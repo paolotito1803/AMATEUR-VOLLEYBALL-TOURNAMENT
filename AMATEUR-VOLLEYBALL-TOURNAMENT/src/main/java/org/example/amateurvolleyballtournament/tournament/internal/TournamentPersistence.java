@@ -116,31 +116,36 @@ class TournamentPersistence {
         tournamentRepository.save(entity);
     }
 
-    public Optional<MatchEntity> updateReferee(String matchId, String referee) {
-           MatchEntity matchEntity = matchRepository.findById(matchId).orElseThrow(() -> new RuntimeException("Match with id " + matchId + " not found"));
-           matchEntity.setReferee(referee);
+    // ...
 
-           matchRepository.save(matchEntity);
-
-           return Optional.of(matchEntity);
-    }
-
-    public Optional<MatchEntity> updateMatchDate(String matchId, LocalDateTime date) {
+    @Transactional
+    public void updateReferee(String matchId, String referee) {
         MatchEntity matchEntity = matchRepository.findById(matchId)
                 .orElseThrow(() -> new RuntimeException("Match with id " + matchId + " not found"));
+
+        matchEntity.setReferee(referee);
+        matchRepository.save(matchEntity);
+    }
+
+    @Transactional
+    public Optional<MatchEntity> updateMatchDate(String matchId, LocalDateTime date) {
+        MatchEntity matchEntity = matchRepository.findById(matchId)
+                .orElseThrow(() -> new RuntimeException("Match not found"));
+
         matchEntity.setMatchDate(date);
 
-        matchRepository.save(matchEntity);
-
+        matchRepository.save(matchEntity); // <--- FONDAMENTALE
         return Optional.of(matchEntity);
     }
 
+    @Transactional
     public Optional<MatchEntity> updateMatchStadium(String matchId, String stadium) {
-        MatchEntity matchEntity = matchRepository.findById(matchId).orElseThrow(() -> new RuntimeException("Match with id " + matchId + " not found"));
+        MatchEntity matchEntity = matchRepository.findById(matchId)
+                .orElseThrow(() -> new RuntimeException("Match not found"));
+
         matchEntity.setStadium(stadium);
 
-        matchRepository.save(matchEntity);
-
+        matchRepository.save(matchEntity); // <--- FONDAMENTALE
         return Optional.of(matchEntity);
     }
 

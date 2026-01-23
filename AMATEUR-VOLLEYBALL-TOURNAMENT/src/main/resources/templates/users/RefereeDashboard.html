@@ -87,13 +87,16 @@
     const user = JSON.parse(localStorage.getItem('user_info'));
     const modal = new bootstrap.Modal(document.getElementById('resultModal'));
 
+    // Verifica Login
     if (!token || !user) {
         window.location.href = '/users/login';
     } else if (user.role !== 'REFEREE') {
         alert("Accesso negato.");
         window.location.href = '/users/login';
     } else {
-        document.getElementById('ref-name').textContent = "Ref. " + (user.surname || user.username);
+        // Mostra il nome a video
+        document.getElementById('ref-name').textContent = user.username;
+        console.log("LOGGED IN AS USERNAME:", user.username); // DEBUG
         loadMatches();
     }
 
@@ -121,25 +124,24 @@
 
             let foundAny = false;
 
-            // Identificativi dell'arbitro loggato
-            const myUsername = user.username;
-            const mySurname = user.surname;
+            // Prendi lo username dell'utente loggato
+            const myUsername = user.username.trim();
 
             tournaments.forEach(t => {
                 if (t.matches && t.matches.length > 0) {
-                    // Ordina per matchIndex
                     const sortedMatches = t.matches.sort((a, b) => a.matchIndex - b.matchIndex);
 
                     sortedMatches.forEach(m => {
+                        // Dato dal DB
+                        const matchRef = m.referee ? m.referee.trim() : "";
 
-                        // --- FILTRO CHIAVE ---
-                        // 1. La partita deve avere il campo referee uguale al mio username O cognome
-                        // 2. La partita deve essere GIOCABILE (teamA e teamB presenti, non BYE)
-                        // 3. La partita NON deve avere ancora un vincitore
+                        // DEBUG: Vedi cosa sta succedendo nella console
+                        console.log(`Match ${m.matchId}: RefDB='${matchRef}' vs Me='${myUsername}'`);
 
-                        // Controllo se sono io l'arbitro (case insensitive per sicurezza)
-                        const isMyMatch = (m.referee && (m.referee === myUsername || m.referee === mySurname));
+                        // --- FILTRO: Controllo Esatto ---
+                        const isMyMatch = (matchRef === myUsername);
 
+                        // Controlla che la partita sia giocabile
                         const isPlayable = (!m.winner || m.winner === "")
                             && m.teamA && m.teamB
                             && m.teamA !== 'BYE' && m.teamB !== 'BYE';
@@ -154,7 +156,6 @@
 
             if (!foundAny) {
                 alertBox.classList.remove('d-none');
-                alertBox.textContent = `Nessuna partita attiva assegnata all'arbitro "${myUsername}" (o "${mySurname}").`;
             }
 
         } catch (error) {
@@ -165,32 +166,50 @@
 
     // --- 3. RENDER HTML ---
     function renderCard(match, tournamentName, container) {
-        // Formattazione data dal DTO LocalDateTime
-        let dateDisplay = "Data da definire";
+        // GESTIONE DATA ROBUSTA
+        let dateDisplay = '<span class="text-muted fst-italic">Data da definire</span>';
+
         if (match.matchDate) {
+            // Prova a creare la data
             const d = new Date(match.matchDate);
-            dateDisplay = d.toLocaleDateString() + " " + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            // Verifica se la data è valida
+            if (!isNaN(d.getTime())) {
+                const day = d.toLocaleDateString('it-IT');
+                const time = d.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'});
+                dateDisplay = `<strong>${day}</strong> alle <strong>${time}</strong>`;
+            }
         }
+
+        // GESTIONE STADIO
+        const stadiumDisplay = match.stadium && match.stadium !== ""
+            ? `<strong>${match.stadium}</strong>`
+            : '<span class="text-muted fst-italic">Stadio non assegnato</span>';
 
         const html = `
             <div class="col-md-6 col-lg-4 mb-4">
                 <div class="card shadow-sm match-card h-100">
                     <div class="card-header bg-white border-bottom-0 pt-3">
                         <small class="text-muted text-uppercase fw-bold">${tournamentName}</small>
-                        <span class="float-end badge bg-light text-dark border">#${match.matchIndex}</span>
+                        <span class="float-end badge bg-light text-dark border">Match #${match.matchIndex}</span>
                     </div>
 
                     <div class="card-body text-center pt-0">
                         <div class="py-3">
-                            <h4 class="mb-0 text-primary">${match.teamA}</h4>
+                            <h4 class="mb-0 text-primary">${match.teamA || '???'}</h4>
                             <div class="my-2"><span class="vs-badge">VS</span></div>
-                            <h4 class="mb-0 text-danger">${match.teamB}</h4>
+                            <h4 class="mb-0 text-danger">${match.teamB || '???'}</h4>
                         </div>
                         <hr>
-                        <div class="text-start small text-muted px-2">
-                            <p class="mb-1"><i class="bi bi-geo-alt-fill"></i> Stadio: <strong>${match.stadium || 'N/D'}</strong></p>
-                            <p class="mb-1"><i class="bi bi-calendar-event-fill"></i> ${dateDisplay}</p>
-                            <p class="mb-0 text-success fw-bold"><i class="bi bi-person-check-fill"></i> Arbitro: ${match.referee}</p>
+                        <div class="text-start small text-dark px-2">
+                            <div class="mb-2">
+                                <i class="bi bi-geo-alt-fill text-danger me-2"></i> ${stadiumDisplay}
+                            </div>
+                            <div class="mb-2">
+                                <i class="bi bi-calendar-event-fill text-primary me-2"></i> ${dateDisplay}
+                            </div>
+                            <div class="mb-0 text-success fw-bold">
+                                <i class="bi bi-person-check-fill me-2"></i> Ref: ${match.referee}
+                            </div>
                         </div>
                     </div>
 
@@ -205,7 +224,7 @@
         `;
         container.innerHTML += html;
     }
-
+    
     // --- 4. INVIO RISULTATO ---
     function openModal(id, teamA, teamB) {
         document.getElementById('modalMatchId').value = id;
