@@ -35,7 +35,7 @@
                     <h4 class="mb-0">Create New Tournament</h4>
                 </div>
                 <div class="card-body">
-                    <!-- FORM CREAZIONE -->
+                    <!-- CREATION FORM  -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">Tournament Name</label>
                         <input type="text" id="tName" class="form-control" placeholder="e.g. Winter Cup 2024">
@@ -48,7 +48,7 @@
                                 <input class="form-check-input team-checkbox" type="checkbox" th:value="${team.name}">
                                 <label class="form-check-label" th:text="${team.name}"></label>
                             </div>
-                            <div th:if="${allTeams.isEmpty()}" class="text-danger small">No teams found.</div>
+                            <div th:if="${allTeams.isEmpty()}" class="text-danger small">No teams founded.</div>
                         </div>
                         <small class="text-muted" id="teamCount">0 selected</small>
                     </div>
@@ -59,7 +59,7 @@
                 </div>
             </div>
 
-            <!-- LISTA TORNEI ATTIVI -->
+            <!-- ACTIVE TOURNAMENT LIST -->
             <div class="card shadow">
                 <div class="card-header bg-dark text-white">
                     <h4 class="mb-0">Active Tournaments</h4>

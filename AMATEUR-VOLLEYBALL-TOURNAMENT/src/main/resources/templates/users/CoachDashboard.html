@@ -31,12 +31,12 @@
         <div class="spinner-border text-primary" role="status"></div>
     </div>
 
-    <!-- VISTA 1: REGISTRAZIONE SQUADRA (Se il coach non ne ha una) -->
+    <!-- VISTA 1: TEAM REGISTRATION -->
     <div id="registration-view" class="row justify-content-center d-none">
         <div class="col-md-6">
             <div class="card shadow">
                 <div class="card-header bg-white">
-                    <h4>Benvenuto Coach!</h4>
+                    <h4>Welcome Coach!</h4>
                     <p class="text-muted mb-0">You don't have a teams, creates.</p>
                 </div>
                 <div class="card-body">
@@ -52,10 +52,10 @@
         </div>
     </div>
 
-    <!-- VISTA 2: GESTIONE SQUADRA (Se il coach ha già una squadra) -->
+    <!-- VISTA 2: TEAM MANAGEMENT -->
     <div id="management-view" class="d-none">
 
-        <!-- HEADER SQUADRA + INFO STADIO -->
+        <!-- TEAM HEADER + INFO STADIUM -->
         <div class="card shadow mb-4 border-primary">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
@@ -63,14 +63,14 @@
                         <h2 id="teamNameDisplay" class="mb-0 text-primary fw-bold">Team Name</h2>
                         <p class="text-muted mb-0">Coach: <span id="coachNameDisplay"></span></p>
 
-                        <!-- Visualizzazione Stadio -->
+                        <!-- STADIUM -->
                         <div class="mt-2">
                             <i class="bi bi-geo-alt-fill text-danger"></i>
                             <span class="badge bg-secondary ms-1" id="stadiumDisplay">Stadium not assigned</span>
                         </div>
                     </div>
 
-                    <!-- PULSANTE MODIFICA STADIO -->
+                    <!-- EDIT STADIUM -->
                     <button class="btn btn-outline-primary" onclick="openStadiumModal()">
                         <i class="bi bi-pencil-square"></i> Update Stadium
                     </button>
@@ -79,7 +79,7 @@
         </div>
 
         <div class="row">
-            <!-- Form Aggiungi Giocatore -->
+            <!-- Form Add Player -->
             <div class="col-md-4">
                 <div class="card shadow mb-4">
                     <div class="card-header bg-success text-white">
@@ -96,7 +96,7 @@
                                 <input type="number" id="pNum" class="form-control" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Ruolo</label>
+                                <label class="form-label">Role</label>
                                 <select id="pRole" class="form-select" required>
                                     <option value="PLAYER">Spiker (Player)</option>
                                     <option value="SETTER">Setter (Setter)</option>
@@ -109,7 +109,7 @@
                 </div>
             </div>
 
-            <!-- Lista Giocatori -->
+            <!-- Lista Players -->
             <div class="col-md-8">
                 <div class="card shadow">
                     <div class="card-header">
@@ -138,7 +138,7 @@
     </div>
 </div>
 
-<!-- MODAL PER MODIFICA STADIO -->
+<!-- MODAL EDIT STADIUM -->
 <div class="modal fade" id="stadiumModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -166,12 +166,12 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // --- CONFIGURAZIONE ---
+    // --- CONFIGURATION ---
     const token = localStorage.getItem('jwt_token');
     const user = JSON.parse(localStorage.getItem('user_info'));
     const stadiumModal = new bootstrap.Modal(document.getElementById('stadiumModal'));
 
-    // --- CONTROLLI SICUREZZA ---
+    // --- SECURITY CHECK ---
     if (!token || !user) {
         window.location.href = '/users/login';
     } else if (user.role !== 'COACH') {
@@ -186,7 +186,7 @@
 
     async function init() {
         try {
-            // Nota: l'HTML è in /users, ma i dati vengono da /api/teams
+            //
             const res = await fetch('/api/teams', {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
@@ -210,7 +210,7 @@
         }
     }
 
-    // --- FUNZIONI DI RENDER ---
+    // --- RENDER FUNCTIONS ---
     function renderDashboard(team) {
         document.getElementById('registration-view').classList.add('d-none');
         document.getElementById('management-view').classList.remove('d-none');
@@ -218,17 +218,17 @@
         document.getElementById('teamNameDisplay').textContent = team.name;
         document.getElementById('coachNameDisplay').textContent = team.coachName;
 
-        // Gestione Stadio
+        // Stadium Management
         if (team.stadium) {
             document.getElementById('stadiumDisplay').textContent =
                 `${team.stadium.name} (${team.stadium.maxSeats} posti)`;
 
-            // Pre-compila i campi del modale
+            // Pre-compilation modal's fields
             document.getElementById('sName').value = team.stadium.name;
             document.getElementById('sSeats').value = team.stadium.maxSeats;
         }
 
-        // Tabella Giocatori
+        // Player's table
         const tbody = document.getElementById('players-table-body');
         tbody.innerHTML = '';
 
@@ -247,7 +247,7 @@
         }
     }
 
-    // --- AZIONI JAVASCRIPT ---
+    // --- JAVASCRIPT ACTIONS ---
 
     function openStadiumModal() {
         stadiumModal.show();
