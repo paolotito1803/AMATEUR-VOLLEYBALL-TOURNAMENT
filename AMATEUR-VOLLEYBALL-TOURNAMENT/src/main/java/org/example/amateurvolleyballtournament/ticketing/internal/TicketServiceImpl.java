@@ -33,6 +33,11 @@ class TicketServiceImpl implements TicketService {
         // First check if available seats
         MatchDTO match = tournamentService.getMatchInformation(matchId)
                 .orElseThrow(() -> new IllegalArgumentException("Match not found"));
+
+        if(numSeat > match.freeSeats()) {
+            throw new IllegalArgumentException("Seat number is greater than available seats");
+        }
+
         boolean reserved = tournamentService.reserveSeat(match.matchId()); // this should fix race condition
         if (!reserved) {
             throw new IllegalStateException("No seats available");
