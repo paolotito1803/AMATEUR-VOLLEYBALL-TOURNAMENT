@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.Console;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Stream;
 
 
 @Slf4j
@@ -464,7 +465,11 @@ class TournamentServiceImpl implements TournamentService {
             throw new IllegalArgumentException("Match " + matchId + " does not exist.");
         }
 
+
+        int capacity = teamService.getStadiumByName(stadium).orElseThrow(
+                () -> new RuntimeException("No stadium found with this name")).maxSeats();
         tournamentPersistence.updateMatchStadium(matchId, stadium);
+        tournamentPersistence.updateMatchFreeSeats(matchId, capacity);
     }
 
     // TODO: Is it a useful function?

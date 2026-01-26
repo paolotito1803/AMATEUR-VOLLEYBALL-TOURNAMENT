@@ -53,12 +53,12 @@
                                    th:value="${match.matchDate}">
                         </td>
 
-                        <!-- STADIUM SELECT -->
+                        <!-- STADIUM SELECT (MODIFICATO) -->
                         <td>
                             <select class="form-select form-select-sm" th:id="'stadium-' + ${match.matchId}">
                                 <option value="" th:selected="${match.stadium == null || match.stadium == ''}">-- Select Stadium --</option>
 
-                                <!--  -->
+                                <!-- Popolato dalla lista 'stadiums' passata dal Controller -->
                                 <option th:each="std : ${stadiums}"
                                         th:value="${std}"
                                         th:text="${std}"
@@ -112,27 +112,27 @@
         const headers = { 'Content-Type': 'application/json' };
         if(token) headers['Authorization'] = 'Bearer ' + token;
 
-        // 1. Find Elements from DOM
+        // 1. Recupera gli elementi dal DOM
         const refSelect = document.getElementById('ref-' + matchId);
         const stadiumInput = document.getElementById('stadium-' + matchId);
         const dateInput = document.getElementById('date-' + matchId);
 
-        // 2. Read value
+        // 2. Leggi i valori
         const referee = refSelect ? refSelect.value : "";
         const stadium = stadiumInput ? stadiumInput.value : "";
         const date = dateInput ? dateInput.value : "";
 
-
+        // DEBUG: Vediamo cosa stiamo per inviare
         console.log(`Saving Match ${matchId}: Ref='${referee}', Stadium='${stadium}', Date='${date}'`);
 
-        // Security Check
+        // CONTROLLO DI SICUREZZA
         if (referee === "") {
-            if(!confirm("ATTENTION: you are saving a match without referee, are you sure?")) return;
+            if(!confirm("ATTENZIONE: Stai salvando la partita SENZA ARBITRO. Sei sicuro?")) return;
         }
 
         const requests = [];
 
-        // A. Update Referee
+        // A. Update Referee (Lo inviamo sempre, anche se vuoto, per permettere la rimozione)
         const bodyRef = { matchId: matchId, newReferee: referee };
         requests.push(fetch('/api/tournaments/match/update_referee', {
             method: 'POST', headers: headers, body: JSON.stringify(bodyRef)
@@ -141,13 +141,13 @@
         // B. Update Stadium
         if (stadium) {
             const bodyStadium = { matchId: matchId, newStadium: stadium };
-
+            // CORREGGI L'URL QUI SE NECESSARIO: /api/tournaments/match/update_stadium
             requests.push(fetch('/api/tournaments/match/update_stadium', {
                 method: 'POST', headers: headers, body: JSON.stringify(bodyStadium)
             }));
         }
 
-        // C. Update Date
+        // C. Update Date (Solo se presente)
         if (dateInput && date) {
             const bodyDate = { matchId: matchId, newDate: date };
             requests.push(fetch('/api/tournaments/match/update_date', {
@@ -182,7 +182,7 @@
                 }
             }
         } catch (e) {
-            alert("Connection Error: " + e);
+            alert("Errore di connessione: " + e);
         }
     }
 </script>

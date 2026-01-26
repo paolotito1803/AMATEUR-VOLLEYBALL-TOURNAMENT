@@ -1,5 +1,6 @@
 package org.example.amateurvolleyballtournament.tournament.web;
 
+import org.example.amateurvolleyballtournament.teams.StadiumDTO;
 import org.example.amateurvolleyballtournament.teams.TeamService;
 import org.example.amateurvolleyballtournament.tournament.MatchDTO;
 import org.example.amateurvolleyballtournament.tournament.TournamentDTO;
@@ -60,7 +61,7 @@ class TournamentWebController {
 
         // 3. RECUPERA GLI STADI (Estraendoli dai Team esistenti)
 
-        var stadiums = teamService.getAllTeams().stream()
+         var stadiums = teamService.getAllTeams().stream()
                 .map(team -> team.stadium())
                 .filter(stadium -> stadium != null)
                 .map(stadium -> stadium.name())
