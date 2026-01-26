@@ -38,7 +38,8 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="match : ${tournament.matches}">
+                    <tr th:each="match : ${tournament.matches}"
+                        th:if="${match.teamA != 'BYE' && match.teamB != 'BYE'}">
                         <!-- Match Index -->
                         <td><span class="badge bg-secondary" th:text="${match.matchIndex}">1</span></td>
 
@@ -127,7 +128,7 @@
 
         // CONTROLLO DI SICUREZZA
         if (referee === "") {
-            if(!confirm("ATTENZIONE: Stai salvando la partita SENZA ARBITRO. Sei sicuro?")) return;
+            if(!confirm("WARNING: you are saving without assigning a referee. Do you want to save?")) return;
         }
 
         const requests = [];
