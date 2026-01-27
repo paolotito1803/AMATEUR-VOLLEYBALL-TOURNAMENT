@@ -117,11 +117,20 @@
         const refSelect = document.getElementById('ref-' + matchId);
         const stadiumInput = document.getElementById('stadium-' + matchId);
         const dateInput = document.getElementById('date-' + matchId);
+        console.log("Ref: " + refSelect.value);
+        console.log("Stadium: " + stadiumInput.value);
+        console.log("Date: " + dateInput.value);
 
         // 2. Leggi i valori
         const referee = refSelect ? refSelect.value : "";
         const stadium = stadiumInput ? stadiumInput.value : "";
-        const date = dateInput ? dateInput.value : "";
+        if (dateInput) {
+            if (dateInput.value === "" && dateInput.validity.badInput) {
+                alert("Please insert both a date and a time for the match date to be valid.");
+                return;
+            }
+            date = dateInput.value;
+        }
 
         // DEBUG: Vediamo cosa stiamo per inviare
         console.log(`Saving Match ${matchId}: Ref='${referee}', Stadium='${stadium}', Date='${date}'`);
