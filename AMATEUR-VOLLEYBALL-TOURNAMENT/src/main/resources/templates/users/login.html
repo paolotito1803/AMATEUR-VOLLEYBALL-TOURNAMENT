@@ -10,35 +10,82 @@
     <i class="bi bi-arrow-left"></i> Home
 </a>
 
-<div class="card shadow p-4" style="max-width: 400px; width: 100%;">
-    <h3 class="text-center mb-4">Login</h3>
+<div class="card shadow p-4" style="max-width: 450px; width: 100%;">
+    <div class="text-center mb-4">
+        <h3 class="fw-bold">Sign In</h3>
+        <p class="text-muted">Volleyball Tournament System</p>
+    </div>
 
-    <div id="error-msg" class="alert alert-danger d-none"></div>
+    <!-- DEMO QUICK LOGIN SECTION -->
+    <div class="mb-4">
+        <div class="text-center position-relative mb-3">
+            <hr>
+            <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 text-muted small fw-bold">
+                DEMO QUICK LOGIN
+            </span>
+        </div>
 
-    <form onsubmit="handleLogin(event)">
+        <div class="row g-2">
+            <div class="col-6">
+                <button class="btn btn-outline-danger w-100" onclick="performLogin('admin@volleyball.com', 'admin123')">
+                    Admin
+                </button>
+            </div>
+            <div class="col-6">
+                <button class="btn btn-outline-primary w-100" onclick="performLogin('coach1@mail.com', 'pwd')">
+                    Coach
+                </button>
+            </div>
+            <div class="col-6">
+                <button class="btn btn-outline-warning w-100" onclick="performLogin('ref1@mail.com', 'pwd')">
+                    Referee
+                </button>
+            </div>
+            <div class="col-6">
+                <button class="btn btn-outline-success w-100" onclick="performLogin('viewer1@mail.com', 'pwd')">
+                    Viewer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="error-msg" class="alert alert-danger d-none text-center"></div>
+
+    <!-- STANDARD FORM -->
+    <form onsubmit="handleFormSubmit(event)">
         <div class="mb-3">
             <label class="form-label">Email</label>
-            <input type="email" id="email" class="form-control" required value="mario@mail.com">
+            <input type="email" id="email" class="form-control" placeholder="user@example.com" required>
         </div>
         <div class="mb-3">
             <label class="form-label">Password</label>
-            <input type="password" id="password" class="form-control" required value="pwd">
+            <input type="password" id="password" class="form-control" placeholder="******" required>
         </div>
-        <button type="submit" class="btn btn-primary w-100">Sign In</button>
+        <button type="submit" class="btn btn-dark w-100 py-2">Login Manually</button>
     </form>
 
-    <div class="mt-3 text-center">
-        <a href="/users/registration">Create an account</a>
+    <div class="mt-4 text-center">
+        <span class="text-muted">Don't have an account?</span>
+        <a href="/users/registration" class="fw-bold text-decoration-none">Register</a>
     </div>
 </div>
 
 <script>
-    async function handleLogin(event) {
+    // 1. Handle Manual Form Submit
+    function handleFormSubmit(event) {
         event.preventDefault();
-
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
+        performLogin(email, password);
+    }
+
+    // 2. Core Login Logic (Reusable)
+    async function performLogin(email, password) {
         const errorDiv = document.getElementById("error-msg");
+
+        // Visual feedback: populate fields
+        document.getElementById("email").value = email;
+        document.getElementById("password").value = password;
 
         try {
             const response = await fetch('/api/users/login', {
@@ -50,12 +97,12 @@
             if (response.ok) {
                 const data = await response.json();
 
-                // SAVES USER TOKEN IN THE BROWSER
+                // STORE TOKEN
                 localStorage.setItem('jwt_token', data.token);
                 localStorage.setItem('user_info', JSON.stringify(data.user));
 
-                // role check
-                const role = data.user.role;;
+                // REDIRECT BASED ON ROLE
+                const role = data.user.role;
                 if (role === 'ADMIN') {
                     window.location.href = '/tournament/admin_dashboard';
                 }
@@ -65,22 +112,26 @@
                 else if (role === 'COACH') {
                     window.location.href = '/users/coach_dashboard';
                 }
-                else if (role === 'VIEWER' /*|| role === 'PLAYER'*/) {
+                else if (role === 'VIEWER' || role === 'PLAYER') {
                     window.location.href = '/users/viewer_dashboard';
                 }
                 else {
                     window.location.href = '/';
                 }
             } else {
-                errorDiv.textContent = "Invalid credentials!";
+                errorDiv.textContent = "Invalid credentials! (Is the hardcoded password in the login.html the same as in .env?)";
                 errorDiv.classList.remove("d-none");
             }
         } catch (error) {
-            errorDiv.textContent = "Server error. Try again.";
+            console.error(error);
+            errorDiv.textContent = "Server connection failed.";
             errorDiv.classList.remove("d-none");
         }
     }
 </script>
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
 </body>
 </html>
