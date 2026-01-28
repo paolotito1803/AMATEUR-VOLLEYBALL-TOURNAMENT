@@ -52,14 +52,14 @@ class TournamentWebController {
 
     @GetMapping("/{id}/manage")
     public String showTournamentManagement(@PathVariable String id, Model model) {
-        // 1. Recupera il Torneo
+        // 1. Fetches tournament
         var tournament = tournamentService.getTournamentDetails(id)
                 .orElseThrow(() -> new IllegalArgumentException("Torneo non trovato"));
 
-        // 2. Recupera gli Arbitri
+        // 2. Fetches referees
         var referees = usersService.listUsersByRole("REFEREE");
 
-        // 3. RECUPERA GLI STADI (Estraendoli dai Team esistenti)
+        // 3. Fetches stadium (picking them from existing teams)
 
          var stadiums = teamService.getAllTeams().stream()
                 .map(team -> team.stadium())

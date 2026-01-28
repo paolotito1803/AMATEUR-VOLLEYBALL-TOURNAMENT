@@ -61,10 +61,10 @@ public class UsersServiceImpl implements UsersService {
         }
 
         if (passwordEncoder.matches(password, user.getPassword())) {
-            // 1. Generiamo il Token
+            // 1. Generate token
             String token = jwtService.generateToken(user.getEmail(), user.getRole());
 
-            // 2. Prepariamo i dati utente
+            // 2. Prepare user data
             UserDTO userDto = new UserDTO(
                     user.getId(),
                     user.getUsername(),
@@ -73,7 +73,6 @@ public class UsersServiceImpl implements UsersService {
                     user.getRole()
             );
 
-            // 3. Ritorniamo entrambi (Token + Dati)
             return new LoginDTO(token, userDto);
 
         } else {
@@ -105,10 +104,8 @@ public class UsersServiceImpl implements UsersService {
 
     @Override
     public List<UserDTO> getAllUsers() {
-        // Prende tutti dal DB e li converte in DTO
+        // Fetches all the users from DB and convert them to DTO
         return userRepository.findAll().stream()
-                // Opzionale: filtrare quelli inattivi
-                // .filter(UserEntity::isActive)
                 .map(entity -> new UserDTO(
                         entity.getId(),
                         entity.getUsername(),

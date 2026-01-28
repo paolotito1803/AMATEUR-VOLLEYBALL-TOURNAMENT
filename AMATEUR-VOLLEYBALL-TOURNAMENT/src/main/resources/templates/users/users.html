@@ -2,7 +2,6 @@
 
 <div class="container mt-5">
 
-    <!-- 1. HEADER CON INFO UTENTE E LOGOUT -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mb-0">Volleyball Users Dev Tools</h2>
         <div>
@@ -17,7 +16,6 @@
         </div>
         <div class="card-body">
 
-            <!-- 2. DEV BUTTONS -->
             <div class="row text-center mb-4">
                 <div class="col-md-6">
                     <button onclick="callApiWithToken('/api/users/seed', 'POST')" class="btn btn-success btn-lg w-100">
@@ -35,13 +33,11 @@
 
             <hr>
 
-            <!-- 3. USERS LIST (CARICATA VIA JS, NON PIÙ THYMELEAF) -->
             <div class="d-flex justify-content-between align-items-center">
                 <h4>Current Users:</h4>
                 <button onclick="loadUsers()" class="btn btn-sm btn-outline-secondary">Refresh List</button>
             </div>
 
-            <!-- Messaggi di stato -->
             <div id="loading-msg" class="text-center my-3">
                 <div class="spinner-border text-primary" role="status"></div>
                 <p>Loading data...</p>
@@ -59,7 +55,6 @@
                     </tr>
                     </thead>
                     <tbody id="table-body">
-                    <!-- QUI JAVASCRIPT INSERIRÀ LE RIGHE -->
                     </tbody>
                 </table>
             </div>
@@ -68,32 +63,30 @@
     </div>
 </div>
 
-<!-- JAVASCRIPT -->
 <script>
-    // --- 1. CONTROLLO SICUREZZA INIZIALE ---
+    // Security check
     const token = localStorage.getItem('jwt_token');
     const user = JSON.parse(localStorage.getItem('user_info'));
 
     if (!token) {
-        // Se non c'è il token, via al login
+        // If there is not a token, fallback to login
         window.location.href = '/users/login';
     } else {
-        // Mostra nome utente
+        // Shows username
         if(user) {
             document.getElementById('user-display').textContent = "Hello, " + user.username;
         }
-        // Avvia il caricamento dati
+        // Starts loading data
         loadUsers();
     }
 
-    // --- 2. FUNZIONE LOGOUT ---
+    // Logout
     function logout() {
         localStorage.removeItem('jwt_token');
         localStorage.removeItem('user_info');
         window.location.href = '/users/login';
     }
 
-    // --- 3. CARICAMENTO DATI TABELLA ---
     async function loadUsers() {
         const tableBody = document.getElementById('table-body');
         const loadingMsg = document.getElementById('loading-msg');
@@ -110,13 +103,13 @@
             const response = await fetch('/api/users', {
                 method: 'GET',
                 headers: {
-                    'Authorization': 'Bearer ' + token, // IMPORTANTE: Passiamo il token
+                    'Authorization': 'Bearer ' + token,
                     'Content-Type': 'application/json'
                 }
             });
 
             if (response.status === 401 || response.status === 403) {
-                logout(); // Token scaduto
+                logout();
                 return;
             }
 
@@ -128,7 +121,6 @@
                 errorMsg.textContent = "No active users found.";
                 errorMsg.classList.remove('d-none');
             } else {
-                // Genera le righe HTML
                 users.forEach(u => {
                     const row = `
                         <tr>
@@ -152,21 +144,20 @@
         }
     }
 
-    // --- 4. FUNZIONE PER I BOTTONI DEV (SEED/RESET) ---
     function callApiWithToken(url, method) {
         if(!confirm("Are you sure?")) return;
 
         fetch(url, {
             method: method,
             headers: {
-                'Authorization': 'Bearer ' + token, // Anche qui usiamo il token per sicurezza
+                'Authorization': 'Bearer ' + token,
                 'Content-Type': 'application/json'
             }
         })
             .then(response => {
                 if (response.ok) {
                     alert("Operation successful!");
-                    loadUsers(); // Ricarica la tabella senza aggiornare la pagina
+                    loadUsers();
                 } else {
                     return response.text().then(text => { throw new Error(text) });
                 }

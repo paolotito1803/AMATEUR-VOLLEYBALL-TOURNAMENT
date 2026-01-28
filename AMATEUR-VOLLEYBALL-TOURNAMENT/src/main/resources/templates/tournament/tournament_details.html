@@ -113,7 +113,7 @@
         const headers = { 'Content-Type': 'application/json' };
         if(token) headers['Authorization'] = 'Bearer ' + token;
 
-        // 1. Recupera gli elementi dal DOM
+        // 1. FETCH DOM ELEMENTS
         const refSelect = document.getElementById('ref-' + matchId);
         const stadiumInput = document.getElementById('stadium-' + matchId);
         const dateInput = document.getElementById('date-' + matchId);
@@ -121,7 +121,7 @@
         console.log("Stadium: " + stadiumInput.value);
         console.log("Date: " + dateInput.value);
 
-        // 2. Leggi i valori
+        // 2. READS VALUES
         const referee = refSelect ? refSelect.value : "";
         const stadium = stadiumInput ? stadiumInput.value : "";
         if (dateInput) {
@@ -132,32 +132,28 @@
             date = dateInput.value;
         }
 
-        // DEBUG: Vediamo cosa stiamo per inviare
-        console.log(`Saving Match ${matchId}: Ref='${referee}', Stadium='${stadium}', Date='${date}'`);
-
-        // CONTROLLO DI SICUREZZA
+        // SECURITY CONTROLS
         if (referee === "") {
             if(!confirm("WARNING: you are saving without assigning a referee. Do you want to save?")) return;
         }
 
         const requests = [];
 
-        // A. Update Referee (Lo inviamo sempre, anche se vuoto, per permettere la rimozione)
+        // Update Referee
         const bodyRef = { matchId: matchId, newReferee: referee };
         requests.push(fetch('/api/tournaments/match/update_referee', {
             method: 'POST', headers: headers, body: JSON.stringify(bodyRef)
         }));
 
-        // B. Update Stadium
+        // Update Stadium
         if (stadium) {
             const bodyStadium = { matchId: matchId, newStadium: stadium };
-            // CORREGGI L'URL QUI SE NECESSARIO: /api/tournaments/match/update_stadium
             requests.push(fetch('/api/tournaments/match/update_stadium', {
                 method: 'POST', headers: headers, body: JSON.stringify(bodyStadium)
             }));
         }
 
-        // C. Update Date (Solo se presente)
+        // Update Date
         if (dateInput && date) {
             const bodyDate = { matchId: matchId, newDate: date };
             requests.push(fetch('/api/tournaments/match/update_date', {
@@ -178,7 +174,6 @@
             }
 
             if (!hasError) {
-                // Feedback Visivo
                 const btn = document.querySelector(`button[data-match-id='${matchId}']`);
                 if(btn) {
                     btn.classList.remove('btn-success');
@@ -192,7 +187,7 @@
                 }
             }
         } catch (e) {
-            alert("Errore di connessione: " + e);
+            alert("Connection error: " + e);
         }
     }
 </script>

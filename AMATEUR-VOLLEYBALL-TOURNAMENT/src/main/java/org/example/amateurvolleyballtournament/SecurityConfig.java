@@ -11,7 +11,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    // Questo Bean serve per poter iniettare PasswordEncoder nel tuo Service
+    // This Bean is needed in order to inject PasswordEncoder into the Service
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -25,9 +25,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // anyone chan do login or registration
                         .requestMatchers("/api/users/login", "/api/users/create", "/api/users/seed").permitAll()
-                        // TUTTO IL RESTO RICHIEDE AUTENTICAZIONE (Se vuoi bloccarlo)
+                        // Everything else requires authentication
                         // .anyRequest().authenticated()
-                        // PER ORA TUTTO APERTO PER TESTARE:
+                        // Everything open now in order to test
                         .anyRequest().permitAll()
                 );
         return http.build();

@@ -34,14 +34,13 @@
 
 <script>
     async function handleLogin(event) {
-        event.preventDefault(); // Evita il refresh della pagina standard
+        event.preventDefault();
 
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
         const errorDiv = document.getElementById("error-msg");
 
         try {
-            // Chiamata all'API che hai creato
             const response = await fetch('/api/users/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -51,7 +50,7 @@
             if (response.ok) {
                 const data = await response.json();
 
-                // SALVA IL TOKEN E L'UTENTE NEL BROWSER
+                // SAVES USER TOKEN IN THE BROWSER
                 localStorage.setItem('jwt_token', data.token);
                 localStorage.setItem('user_info', JSON.stringify(data.user));
 
@@ -64,15 +63,12 @@
                     window.location.href = '/users/referee_dashboard';
                 }
                 else if (role === 'COACH') {
-                    // Assicurati di avere questa pagina nel Controller
                     window.location.href = '/users/coach_dashboard';
                 }
                 else if (role === 'VIEWER' /*|| role === 'PLAYER'*/) {
-                    // Assicurati di avere questa pagina
                     window.location.href = '/users/viewer_dashboard';
                 }
                 else {
-                    // Fallback se il ruolo è strano
                     window.location.href = '/';
                 }
             } else {

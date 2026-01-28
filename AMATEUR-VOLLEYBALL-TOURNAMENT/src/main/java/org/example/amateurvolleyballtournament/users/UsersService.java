@@ -3,32 +3,32 @@ package org.example.amateurvolleyballtournament.users;
 import java.util.List;
 
 public interface UsersService {
-    // Creazione nuovo utente
+    // New user creation
     void createUser(InputUserDTO user);
 
-    // Aggiornamento utente esistente
+    // Updates existing user
     void updateUser(String id, UserDTO user);
 
     //login
     LoginDTO login(String email, String password) throws Exception;
 
 
-    // Lista utenti filtrata per ruolo
+    // Filters user list by role
     List<UserDTO> listUsersByRole(String role);
 
-    // Disattiva utente (flag)
+    // Deactivate user
     void deactivateUser(String id);
 
-    // Lista tutti gli utenti
+    // List with all the users
     List<UserDTO> getAllUsers();
 
-    // Export utenti filtrati per ruolo (può essere JSON, CSV o lista)
+    // Exports filtered user list by role (JSON, CSV o list)
     List<UserDTO> exportUsersByRole(String role);
     
     Boolean isCoach(String uniqueCoachId);
 
     boolean isAdmin(String userId);
     
-    //Ritorno nome e cognome del coach
+    //Returns coach name and lastname
     String getCoach(String id) throws Exception;
 }
