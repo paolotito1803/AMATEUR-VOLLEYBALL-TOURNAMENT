@@ -30,4 +30,8 @@ public class TicketPersistence {
     public List<TicketEntity> findTicketByMatchId(String match) {
         return ticketRepo.findByMatch(match);
     }
+
+    public boolean existsTicket(String matchId, int numSeat) {
+        return ticketRepo.existsByMatchAndNumSeat(matchId, numSeat);
+    }
 }

@@ -133,7 +133,7 @@ public class GlobalSeeder implements CommandLineRunner {
             List<String> teams = List.of("Fire Dragons", "Ice Walkers", "Earth Golems", "Wind Flyers");
             try {
                 tournamentService.createTournament(tourneyName, teams);
-                System.out.println("   + Created Tournament: " + tourneyName);
+                //System.out.println("   + Created Tournament: " + tourneyName);
             } catch (Exception e) {
                 System.err.println("   - Error creating tournament: " + e.getMessage());
             }
@@ -160,7 +160,7 @@ public class GlobalSeeder implements CommandLineRunner {
                             .ifPresent(hostTeam -> {
                                 if (hostTeam.stadium() != null) {
                                     tournamentService.updateMatchStadium(m1.matchId(), hostTeam.stadium().name());
-                                    System.out.println("   + Updated Match #1 Stadium to: " + hostTeam.stadium().name());
+                                    //System.out.println("   + Updated Match #1 Stadium to: " + hostTeam.stadium().name());
                                 }
                             });
                 }
@@ -189,7 +189,7 @@ public class GlobalSeeder implements CommandLineRunner {
                     try {
                         if (ticketService.getAllTicketsByUserId(viewerId).isEmpty()) {
                             ticketService.addTicket(5, viewerId, match.matchId());
-                            System.out.println("Ticket bought for " + viewerId + " on match " + match.matchId());
+                            //System.out.println("Ticket bought for " + viewerId + " on match " + match.matchId());
                         }
                         else {
                             // System.out.println("Ticket already bought for " + viewerId + " on match " + match.matchId());

@@ -30,17 +30,24 @@ class TicketServiceImpl implements TicketService {
         if(userId == null || userId.isEmpty() || matchId == null || matchId.isEmpty() || numSeat <= 0)
             throw new IllegalArgumentException("userId, match and numSeat cannot be empty");
 
+        // Check if this specific seat is already taken
+        if (db.existsTicket(matchId, numSeat)) {
+            throw new IllegalArgumentException("Seat " + numSeat + " is already occupied.");
+        }
+
         // First check if available seats
         MatchDTO match = tournamentService.getMatchInformation(matchId)
                 .orElseThrow(() -> new IllegalArgumentException("Match not found"));
 
-        if(numSeat > match.freeSeats()) {
-            throw new IllegalArgumentException("Seat number is greater than available seats");
+        // Instead, check if there are ANY seats left
+        if (match.freeSeats() <= 0) {
+            throw new IllegalStateException("Match is sold out.");
         }
 
-        boolean reserved = tournamentService.reserveSeat(match.matchId()); // this should fix race condition
+        // Rely on the atomic reservation in TournamentService
+        boolean reserved = tournamentService.reserveSeat(match.matchId());
         if (!reserved) {
-            throw new IllegalStateException("No seats available");
+            throw new IllegalStateException("No seats available (Concurrency error).");
         }
 
         TicketEntity ticket = new TicketEntity(numSeat, matchId, userId);
