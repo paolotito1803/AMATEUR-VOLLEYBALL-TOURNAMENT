@@ -47,28 +47,6 @@ class TicketRestController {
         return ResponseEntity.ok("Ticket booked successfully");
     }
 
-    // POST http://localhost:8080/api/tickets/seed
-    @PostMapping("/seed")
-    public ResponseEntity<?> seedData() {
-        // TODO: UPDATE THIS WITH PROPER AUTHORIZATION LOGIC
-
-        try {
-            // Check if data exists to avoid duplicates/errors
-            if (!ticketService.getAllTicketsByUserId("1").isEmpty()) {
-                return ResponseEntity.badRequest().body("Database is not empty. Please call /reset first.");
-            }
-
-            // 1. Register Teams
-            ticketService.addTicket(1, "1", "1");
-            ticketService.addTicket(2, "1", "2");
-
-            return ResponseEntity.ok("Dev Data Seeded Successfully!");
-
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error seeding data: " + e.getMessage());
-        }
-    }
-
     // DELETE http://localhost:8080/api/teams/reset
     @DeleteMapping("/reset")
     public ResponseEntity<?> resetData() {

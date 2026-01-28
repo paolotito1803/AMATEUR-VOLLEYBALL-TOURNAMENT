@@ -49,10 +49,8 @@ class TournamentPersistence {
     }
 
     public Optional<String> getTournamentIdByName(String tournamentName) {
-        TournamentEntity tournamentEntity = tournamentRepository.findByTournamentName(tournamentName)
-                .orElseThrow(() -> new RuntimeException("Tournament with name " + tournamentName + " not found."));
-
-        return Optional.ofNullable(tournamentEntity.getTournamentId());
+        return tournamentRepository.findByTournamentName(tournamentName)
+                .map(TournamentEntity::getTournamentId);
     }
 
     public MatchEntity getMatchOrThrow(String matchId) {

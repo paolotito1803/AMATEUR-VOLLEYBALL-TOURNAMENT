@@ -53,19 +53,6 @@ class UsersRestController {
         return ResponseEntity.ok("All users deactivated.");
     }
 
-    // POST seed users (dev tool)
-    @PostMapping("/seed")
-    public ResponseEntity<String> seedUsers() {
-        try {
-            usersService.createUser(new InputUserDTO("coach_mario", "Mario", "Rossi", "pwd", "mario@mail.com", "COACH"));
-            usersService.createUser(new InputUserDTO("ref_luigi", "Luigi", "Verdi", "pwd", "luigi@mail.com", "REFEREE"));
-            usersService.createUser(new InputUserDTO("viewer_peach", "Peach", "Princess", "pwd", "peach@mail.com", "VIEWER"));
-            return ResponseEntity.ok("Sample users created successfully!");
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error seeding users: " + e.getMessage());
-        }
-    }
-
     // GET export users by role
     @GetMapping("/export/{role}")
     public List<UserDTO> exportByRole(@PathVariable String role) {

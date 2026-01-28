@@ -27,10 +27,18 @@ public class UsersServiceImpl implements UsersService {
 
     @Override
     public void createUser(InputUserDTO user) {
+        if (userRepository.findByEmail(user.email()).isPresent()) {
+            throw new IllegalArgumentException("User with email " + user.email() + " already exists.");
+        }
+
         String encryptedPwd = passwordEncoder.encode(user.password());
 
+        String userId = (user.id() != null && !user.id().isEmpty())
+                ? user.id()
+                : UUID.randomUUID().toString();
+
         //new Entity into the db
-        UserEntity userEntity = new UserEntity(UUID.randomUUID().toString(),
+        UserEntity userEntity = new UserEntity(userId,
                 user.username(),
                 user.surname(),
                 user.email(),
