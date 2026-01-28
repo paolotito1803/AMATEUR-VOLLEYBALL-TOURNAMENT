@@ -1,5 +1,7 @@
 package org.example.amateurvolleyballtournament.users.internal;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import org.example.amateurvolleyballtournament.users.InputUserDTO;
 import org.example.amateurvolleyballtournament.users.LoginDTO;
 import org.example.amateurvolleyballtournament.users.UserDTO;
@@ -153,6 +155,57 @@ public class UsersServiceImpl implements UsersService {
         } else {
             throw new Exception("Unauthorized: User is not a coach");
         }
+    }
+
+    @Override
+    public String extractEmailFromToken(String jwtToken) {
+        if (jwtToken == null || jwtToken.isEmpty()) {
+            return null;
+        }
+
+        // Remove Bearer if present
+        if (jwtToken.startsWith("Bearer ")) {
+            jwtToken = jwtToken.substring(7);
+        }
+
+        try {
+            // Same logic as JwtService
+            Claims claims = Jwts.parser()
+                    .setSigningKey(jwtService.getSecretKey().getBytes()) // Key from JwtService
+                    .parseClaimsJws(jwtToken)
+                    .getBody();
+            return claims.getSubject();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
+    public String extractRoleFromToken(String jwtToken) {
+        if (jwtToken == null || jwtToken.isEmpty()) {
+            return null;
+        }
+
+        // Remove Bearer if present
+        if (jwtToken.startsWith("Bearer ")) {
+            jwtToken = jwtToken.substring(7);
+        }
+
+        try {
+            Claims claims = Jwts.parser()
+                    .setSigningKey(jwtService.getSecretKey().getBytes())
+                    .parseClaimsJws(jwtToken)
+                    .getBody();
+            return claims.get("role", String.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
+    public boolean isAdminFromToken(String jwtToken) {
+        String role = extractRoleFromToken(jwtToken);
+        return "ADMIN".equalsIgnoreCase(role);
     }
 }
 

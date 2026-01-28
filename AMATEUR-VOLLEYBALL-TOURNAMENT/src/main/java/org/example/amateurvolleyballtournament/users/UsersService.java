@@ -31,4 +31,10 @@ public interface UsersService {
     
     //Returns coach name and lastname
     String getCoach(String id) throws Exception;
+
+    String extractEmailFromToken(String jwtToken);
+
+    String extractRoleFromToken(String jwtToken);
+
+    boolean isAdminFromToken(String jwtToken);
 }

@@ -25,4 +25,8 @@ public class JwtService {
                 .signWith(KEY, SignatureAlgorithm.HS256) // Firma digitale
                 .compact();
     }
+
+    public String getSecretKey() {
+        return SECRET;
+    }
 }

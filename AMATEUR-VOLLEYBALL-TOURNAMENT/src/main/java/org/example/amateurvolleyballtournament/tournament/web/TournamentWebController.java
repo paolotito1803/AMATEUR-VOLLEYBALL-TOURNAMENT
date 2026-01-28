@@ -1,5 +1,6 @@
 package org.example.amateurvolleyballtournament.tournament.web;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.example.amateurvolleyballtournament.teams.StadiumDTO;
 import org.example.amateurvolleyballtournament.teams.TeamService;
 import org.example.amateurvolleyballtournament.tournament.MatchDTO;
@@ -61,7 +62,7 @@ class TournamentWebController {
 
         // 3. Fetches stadium (picking them from existing teams)
 
-         var stadiums = teamService.getAllTeams().stream()
+        var stadiums = teamService.getAllTeams().stream()
                 .map(team -> team.stadium())
                 .filter(stadium -> stadium != null)
                 .map(stadium -> stadium.name())
@@ -78,7 +79,7 @@ class TournamentWebController {
 
     // Visualise tournament brackets
     @GetMapping("/{id}/bracket")
-    public String showBracket(@PathVariable String id, Model model) {
+    public String showBracket(@PathVariable String id, Model model, HttpServletRequest request) {
         TournamentDTO tournament = tournamentService.getTournamentDetails(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tournament not found"));
 
@@ -89,7 +90,44 @@ class TournamentWebController {
         model.addAttribute("tournament", tournament);
         model.addAttribute("matchesByStage", matchesByStage);
 
-        return "tournament/bracket";
+        // Check for Role
+        String authHeader = request.getHeader("Authorization");
+        boolean isAdmin = false;
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            isAdmin = usersService.isAdminFromToken(authHeader);
+        }
+
+        return isAdmin ? "tournament/admin_bracket_view" : "tournament/bracket_view";
+    }
+
+    @GetMapping("/{id}/admin_bracket")
+    public String showAdminBracket(@PathVariable String id, Model model) {
+        TournamentDTO tournament = tournamentService.getTournamentDetails(id)
+                .orElseThrow(() -> new IllegalArgumentException("Tournament not found"));
+
+        Map<Integer, List<MatchDTO>> matchesByStage = tournament.matches().stream()
+                .sorted(Comparator.comparingInt(MatchDTO::matchIndex))
+                .collect(Collectors.groupingBy(MatchDTO::stage));
+
+        // Fetch referees
+        var referees = usersService.listUsersByRole("REFEREE");
+
+        // Fetch stadiums (picking them from existing teams)
+        var stadiums = teamService.getAllTeams().stream()
+                .map(team -> team.stadium())
+                .filter(stadium -> stadium != null)
+                .map(stadium -> stadium.name())
+                .filter(name -> name != null && !name.isEmpty())
+                .distinct()
+                .toList();
+
+        model.addAttribute("tournament", tournament);
+        model.addAttribute("matchesByStage", matchesByStage);
+        model.addAttribute("referees", referees);
+        model.addAttribute("stadiums", stadiums);
+
+        return "tournament/admin_bracket_view";
     }
 
     @GetMapping("/{id}/bracket_view")

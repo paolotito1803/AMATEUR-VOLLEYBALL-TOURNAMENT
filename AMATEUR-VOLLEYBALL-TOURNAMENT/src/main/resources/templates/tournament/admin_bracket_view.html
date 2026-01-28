@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Tournament Bracket</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 0;
+        }
+        .bracket-container {
+            display: flex;
+            flex-direction: row;
+            overflow-x: auto;
+            gap: 30px;
+            padding: 30px 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            min-height: 400px;
+        }
+        .stage-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            min-width: 280px;
+            padding: 0 15px;
+        }
+        .stage-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+        .match-card {
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            background-color: white;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .match-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        .match-header {
+            background-color: #f8f9fa;
+            padding: 8px 15px;
+            border-bottom: 1px solid #dee2e6;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .match-index {
+            font-size: 0.85rem;
+            color: #6c757d;
+            font-weight: 600;
+        }
+        .edit-match-btn {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+        }
+        .team-row {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+            position: relative;
+            z-index: 10;
+        }
+        .team-row:not(:last-child) {
+            border-bottom: 1px solid #dee2e6;
+        }
+        .team-name {
+            font-weight: 500;
+            font-size: 1rem;
+            color: #212529;
+        }
+
+        /* ADMIN MODE: Clickable team rows */
+        .team-row.clickable {
+            cursor: pointer;
+        }
+        .team-row.clickable:hover:not(.locked):not(.waiting) {
+            background-color: #e2e6ea;
+        }
+
+        /* State classes */
+        .team-row.winner {
+            background: linear-gradient(to right, #d4edda 0%, #ffffff 100%);
+            border-left: 4px solid #28a745;
+        }
+        .team-row.winner .team-name {
+            color: #155724;
+            font-weight: 700;
+        }
+        .team-row.winner .winner-icon {
+            color: #28a745;
+            font-size: 1.2rem;
+            margin-left: 10px;
+        }
+
+        .team-row.waiting {
+            background-color: #fff9e6;
+            border-left: 4px solid #ffc107;
+        }
+        .team-row.waiting .team-name {
+            color: #856404;
+            font-style: italic;
+        }
+
+        .team-row.loser {
+            opacity: 0.6;
+            background-color: #f8f9fa;
+        }
+        .team-row.loser .team-name {
+            color: #6c757d;
+            text-decoration: line-through;
+        }
+
+        .team-row.locked {
+            pointer-events: none !important;
+            opacity: 0.8;
+        }
+
+        .badge-bye {
+            background-color: #6c757d;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .match-score {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #667eea;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .stage-connector {
+            border-right: 2px dashed #dee2e6;
+            margin-right: 15px;
+        }
+
+        .legend {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 25px;
+            margin-bottom: 10px;
+        }
+
+        .legend-box {
+            width: 40px;
+            height: 30px;
+            border-radius: 5px;
+            margin-right: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .legend-winner {
+            background: linear-gradient(to right, #d4edda 0%, #ffffff 100%);
+            border-left: 4px solid #28a745;
+        }
+
+        .legend-waiting {
+            background-color: #fff9e6;
+            border-left: 4px solid #ffc107;
+        }
+
+        .legend-loser {
+            background-color: #f8f9fa;
+            opacity: 0.6;
+        }
+
+        .admin-badge {
+            background-color: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .match-info-section {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-top: 1px solid #dee2e6;
+            font-size: 0.85rem;
+        }
+
+        .match-info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .match-info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .match-info-item i {
+            margin-right: 8px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .time-picker-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark mb-0">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">🏐 Volleyball Tournament</a>
+        <div class="d-flex align-items-center gap-3">
+            <span id="nav-user" class="text-white"></span>
+            <a href="/" class="btn btn-outline-light btn-sm">Home</a>
+            <button onclick="logout()" class="btn btn-danger btn-sm" id="logout-btn" style="display: none;">Logout</button>
+        </div>
+    </div>
+</nav>
+
+<section class="hero-section">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 id="tournament-name" class="mb-2 fw-bold" th:text="${tournament.tournamentName}">Tournament Bracket</h2>
+                <p id="tournament-info" class="mb-0 opacity-75">
+                    <span th:text="${tournament.teams != null ? tournament.teams.size() : 0}">0</span> Teams •
+                    <span th:text="${tournament.matches != null ? tournament.matches.size() : 0}">0</span> Total Matches
+                </p>
+            </div>
+            <div>
+                <a th:href="@{/tournament/admin_dashboard}" class="btn btn-light">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container-fluid py-4">
+    <div id="loading" class="text-center py-5" style="display: none;">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-3">Loading bracket...</p>
+    </div>
+
+    <div id="bracket-view">
+
+        <div class="legend">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Legend</h5>
+                <div id="admin-notice" style="display: none;">
+                    <span class="badge bg-danger">🔓 Admin Mode: Click teams to set winner or Edit match details</span>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap">
+                <div class="legend-item">
+                    <div class="legend-box legend-winner"></div>
+                    <span>🏆 Winner</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box legend-waiting"></div>
+                    <span>⏳ Waiting for Opponent</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box legend-loser"></div>
+                    <span>❌ Eliminated</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bracket-container" th:if="${matchesByStage != null and !matchesByStage.isEmpty()}">
+            <!-- Bracket will be rendered here by JS -->
+        </div>
+
+        <div th:if="${matchesByStage == null or matchesByStage.isEmpty()}" class="alert alert-warning text-center">
+            <i class="bi bi-exclamation-triangle"></i> No matches found for this tournament.
+        </div>
+    </div>
+</div>
+
+<!-- Edit Match Modal -->
+<div class="modal fade" id="editMatchModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil-square"></i> Edit Match Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editMatchForm">
+                    <input type="hidden" id="editMatchId">
+
+                    <!-- Match Info Display -->
+                    <div class="alert alert-info mb-4">
+                        <strong>Match:</strong> <span id="displayTeams">-</span><br>
+                        <strong>Match #:</strong> <span id="displayMatchIndex">-</span>
+                    </div>
+
+                    <!-- Date and Time Selection -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-calendar-event"></i> Match Date & Time
+                        </label>
+                        <div class="time-picker-group">
+                            <input type="date" id="editMatchDate" class="form-control" style="flex: 1;" required>
+                            <select id="editMatchTime" class="form-select" style="width: 120px;" required>
+                                <option value="">Time...</option>
+                            </select>
+                        </div>
+                        <small class="text-muted">Set the date and time for this match</small>
+                    </div>
+
+                    <!-- Stadium Selection -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-geo-alt"></i> Stadium
+                        </label>
+                        <select id="editMatchStadium" class="form-select" required>
+                            <option value="">-- Select Stadium --</option>
+                        </select>
+                        <small class="text-muted">Choose the venue for this match</small>
+                    </div>
+
+                    <!-- Referee Selection -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-person-badge"></i> Referee
+                        </label>
+                        <select id="editMatchReferee" class="form-select" required>
+                            <option value="">-- Select Referee --</option>
+                        </select>
+                        <small class="text-muted">Assign a referee to this match</small>
+                    </div>
+
+                    <!-- Scores Section -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">
+                                <i class="bi bi-trophy"></i> Match Scores
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label">Team A Score</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text" id="teamALabel">Team A</span>
+                                        <input type="number" id="editScoreA" class="form-control" min="0" value="0">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Team B Score</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text" id="teamBLabel">Team B</span>
+                                        <input type="number" id="editScoreB" class="form-control" min="0" value="0">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-success" onclick="saveMatchChanges()">
+                    <i class="bi bi-check-circle"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // Manual parsing to avoid Jackson serialization issues with LocalDateTime
+    const tournamentData = {
+        id: /*[[${tournament.id}]]*/ '',
+        tournamentName: /*[[${tournament.tournamentName}]]*/ '',
+        teams: [
+            /*[# th:each="team : ${tournament.teams}"]*/
+            {
+                id: /*[[${team.id}]]*/ '',
+                name: /*[[${team.name}]]*/ ''
+            }/*[# th:if="${!teamStat.last}"]*/, /*[/]*/
+            /*[/]*/
+        ],
+        matches: [
+            /*[# th:each="match : ${tournament.matches}"]*/
+            {
+                matchId: /*[[${match.matchId}]]*/ '',
+                stadium: /*[[${match.stadium}]]*/ '',
+                freeSeats: /*[[${match.freeSeats}]]*/ 0,
+                matchDate: /*[[${match.matchDate != null ? match.matchDate.toString() : ''}]]*/ '',
+                referee: /*[[${match.referee}]]*/ '',
+                stage: /*[[${match.stage}]]*/ 0,
+                matchIndex: /*[[${match.matchIndex}]]*/ 0,
+                teamA: /*[[${match.teamA}]]*/ '',
+                teamB: /*[[${match.teamB}]]*/ '',
+                scoreA: /*[[${match.scoreA}]]*/ 0,
+                scoreB: /*[[${match.scoreB}]]*/ 0,
+                winner: /*[[${match.winner}]]*/ '',
+                nextMatch: /*[[${match.nextMatch}]]*/ ''
+            }/*[# th:if="${!matchStat.last}"]*/, /*[/]*/
+            /*[/]*/
+        ]
+    };
+
+    // Parse referees list
+    const refereesList = [
+        /*[# th:each="referee : ${referees}"]*/
+        {
+            id: /*[[${referee.id}]]*/ '',
+            username: /*[[${referee.username}]]*/ '',
+            surname: /*[[${referee.surname}]]*/ '',
+            role: /*[[${referee.role}]]*/ ''
+        }/*[# th:if="${!refereeStat.last}"]*/, /*[/]*/
+        /*[/]*/
+    ];
+
+    // Parse stadiums list (simple strings)
+    const stadiumsList = [
+        /*[# th:each="stadium : ${stadiums}"]*/
+        /*[[${stadium}]]*//*[# th:if="${!stadiumStat.last}"]*/, /*[/]*/
+        /*[/]*/
+    ];
+    /*]]>*/
+
+    // Available time slots
+    const TIME_SLOTS = [
+        "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+        "12:00", "12:30", "13:00", "13:30", "14:00", "14:30",
+        "15:00", "15:30", "16:00", "16:30", "17:00", "17:30",
+        "18:00", "18:30", "19:00", "19:30", "20:00", "20:30",
+        "21:00", "21:30", "22:00"
+    ];
+
+    let token = localStorage.getItem('jwt_token');
+    let user = null;
+    let isAdmin = false;
+    let editMatchModal = null;
+
+    try {
+        const userStr = localStorage.getItem('user_info');
+        if (userStr) {
+            user = JSON.parse(userStr);
+        }
+    } catch (e) {
+        console.error('Error parsing user info:', e);
+    }
+
+    if (user) {
+        document.getElementById('nav-user').textContent = `Hello, ${user.username}!`;
+        document.getElementById('logout-btn').style.display = 'block';
+
+        // Check if user is ADMIN
+        isAdmin = user.role === 'ADMIN';
+
+        if (isAdmin) {
+            document.getElementById('admin-notice').style.display = 'block';
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('jwt_token');
+        localStorage.removeItem('user_info');
+        window.location.href = '/';
+    }
+
+    // Main initialization
+    document.addEventListener('DOMContentLoaded', () => {
+        editMatchModal = new bootstrap.Modal(document.getElementById('editMatchModal'));
+
+        // Populate time slots dropdown
+        populateTimeSlots();
+
+        // Populate referees dropdown
+        populateReferees();
+
+        // Populate stadiums dropdown
+        populateStadiums();
+
+        if (tournamentData) {
+            renderBracket(tournamentData);
+        } else {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loading').innerHTML =
+                `<div class="alert alert-danger">Error: Tournament data not found.</div>`;
+        }
+    });
+
+    function populateTimeSlots() {
+        const select = document.getElementById('editMatchTime');
+        select.innerHTML = '<option value="">Time...</option>';
+
+        TIME_SLOTS.forEach(time => {
+            const option = document.createElement('option');
+            option.value = time;
+            option.textContent = time;
+            select.appendChild(option);
+        });
+    }
+
+    function populateReferees() {
+        const select = document.getElementById('editMatchReferee');
+        select.innerHTML = '<option value="">-- Select Referee --</option>';
+
+        if (refereesList && refereesList.length > 0) {
+            refereesList.forEach(referee => {
+                const option = document.createElement('option');
+                option.value = `${referee.surname} ${referee.username}`;
+                option.textContent = `${referee.surname} ${referee.username}`;
+                select.appendChild(option);
+            });
+        }
+    }
+
+    function populateStadiums() {
+        const select = document.getElementById('editMatchStadium');
+        select.innerHTML = '<option value="">-- Select Stadium --</option>';
+
+        if (stadiumsList && stadiumsList.length > 0) {
+            stadiumsList.forEach(stadium => {
+                const option = document.createElement('option');
+                option.value = stadium;
+                option.textContent = stadium;
+                select.appendChild(option);
+            });
+        }
+    }
+
+    function renderBracket(tournament) {
+        const matchesByStage = {};
+        const matches = tournament.matches || [];
+
+        matches.forEach(match => {
+            if (!matchesByStage[match.stage]) {
+                matchesByStage[match.stage] = [];
+            }
+            matchesByStage[match.stage].push(match);
+        });
+
+        const container = document.querySelector('.bracket-container');
+        container.innerHTML = '';
+
+        const sortedStages = Object.keys(matchesByStage).sort((a, b) => a - b);
+        const teamCount = tournament.teams ? tournament.teams.length : 0;
+
+        if (sortedStages.length === 0) {
+            container.innerHTML = '<p class="p-4 text-muted">No matches scheduled yet.</p>';
+            return;
+        }
+
+        sortedStages.forEach((stage, index) => {
+            const stageMatches = matchesByStage[stage].sort((a, b) => a.matchIndex - b.matchIndex);
+            const stageName = getStageName(stage, teamCount, sortedStages.length);
+            const isLastStage = index === sortedStages.length - 1;
+
+            const stageColumn = createStageColumn(stage, stageName, stageMatches, isLastStage);
+            container.appendChild(stageColumn);
+        });
+    }
+
+    function getStageName(stage, teamCount, totalStages) {
+        const stageNum = parseInt(stage);
+
+        if (teamCount === 16) {
+            if (stageNum === 1) return 'Round of 16';
+            if (stageNum === 2) return 'Quarter-finals';
+            if (stageNum === 3) return 'Semi-finals';
+            if (stageNum === 4) return 'Final';
+        } else if (teamCount === 8) {
+            if (stageNum === 1) return 'Quarter-finals';
+            if (stageNum === 2) return 'Semi-finals';
+            if (stageNum === 3) return 'Final';
+        } else if (teamCount === 4) {
+            if (stageNum === 1) return 'Semi-finals';
+            if (stageNum === 2) return 'Final';
+        } else if (teamCount === 2) {
+            return 'Final';
+        }
+
+        if (stageNum === totalStages && totalStages > 1) return 'Final';
+        if (stageNum === totalStages - 1 && totalStages > 2) return 'Semi-finals';
+
+        return `Round ${stageNum}`;
+    }
+
+    function createStageColumn(stage, stageName, matches, isLastStage) {
+        const column = document.createElement('div');
+        column.className = `stage-column ${!isLastStage ? 'stage-connector' : ''}`;
+
+        const header = document.createElement('div');
+        header.className = 'stage-header';
+        header.innerHTML = `<h5 class="mb-0">${stageName}</h5>`;
+        column.appendChild(header);
+
+        matches.forEach(match => {
+            const matchCard = createMatchCard(match);
+            column.appendChild(matchCard);
+        });
+
+        return column;
+    }
+
+    function createMatchCard(match) {
+        const card = document.createElement('div');
+        card.className = 'match-card';
+
+        const isMatchReady = match.teamA && match.teamA !== '' && match.teamB && match.teamB !== '';
+        const hasWinner = match.winner && match.winner !== '';
+
+        const header = document.createElement('div');
+        header.className = 'match-header';
+
+        const matchIndexSpan = document.createElement('span');
+        matchIndexSpan.className = 'match-index';
+        matchIndexSpan.textContent = `Match #${match.matchIndex}`;
+        header.appendChild(matchIndexSpan);
+
+        // Add Edit button for admin
+        if (isAdmin) {
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn btn-warning btn-sm edit-match-btn';
+            editBtn.innerHTML = '<i class="bi bi-pencil"></i> Edit';
+            editBtn.onclick = (e) => {
+                e.stopPropagation();
+                openEditModal(match);
+            };
+            header.appendChild(editBtn);
+        }
+
+        card.appendChild(header);
+
+        // Team A
+        const teamARow = createTeamRow(
+            match,
+            match.teamA,
+            match.scoreA,
+            hasWinner && match.winner === match.teamA,
+            hasWinner && match.winner !== match.teamA,
+            !isMatchReady,
+            hasWinner || !isMatchReady
+        );
+        card.appendChild(teamARow);
+
+        // Team B
+        const teamBRow = createTeamRow(
+            match,
+            match.teamB,
+            match.scoreB,
+            hasWinner && match.winner === match.teamB,
+            hasWinner && match.winner !== match.teamB,
+            !isMatchReady,
+            hasWinner || !isMatchReady
+        );
+        card.appendChild(teamBRow);
+
+        // Match info section
+        const infoSection = document.createElement('div');
+        infoSection.className = 'match-info-section';
+
+        let infoHTML = '';
+
+        if (match.matchDate) {
+            const date = new Date(match.matchDate);
+            const formattedDate = date.toLocaleString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            infoHTML += `<div class="match-info-item"><i class="bi bi-calendar-event text-primary"></i><span>${formattedDate}</span></div>`;
+        }
+
+        if (match.stadium) {
+            infoHTML += `<div class="match-info-item"><i class="bi bi-geo-alt text-danger"></i><span>${match.stadium}</span></div>`;
+        }
+
+        if (match.referee) {
+            infoHTML += `<div class="match-info-item"><i class="bi bi-person-badge text-success"></i><span>${match.referee}</span></div>`;
+        }
+
+        if (infoHTML !== '') {
+            infoSection.innerHTML = infoHTML;
+            card.appendChild(infoSection);
+        }
+
+        return card;
+    }
+
+    function createTeamRow(match, teamName, score, isWinner, isLoser, isWaiting, isLocked) {
+        const row = document.createElement('div');
+        row.className = 'team-row';
+
+        // Add clickable class only if ADMIN and match is not locked/waiting
+        if (isAdmin && !isLocked && !isWaiting && teamName && teamName !== '') {
+            row.classList.add('clickable');
+            row.setAttribute('data-match-id', match.matchId);
+            row.setAttribute('data-team', teamName);
+            row.onclick = function() {
+                setWinner(this.getAttribute('data-match-id'), this.getAttribute('data-team'));
+            };
+        }
+
+        if (isWinner) {
+            row.classList.add('winner');
+        } else if (isLoser) {
+            row.classList.add('loser');
+        } else if (isWaiting || !teamName || teamName === '') {
+            row.classList.add('waiting');
+        }
+
+        if (isLocked) {
+            row.classList.add('locked');
+        }
+
+        const teamNameSpan = document.createElement('span');
+        teamNameSpan.className = 'team-name';
+        teamNameSpan.textContent = teamName && teamName !== '' ? teamName : 'Waiting...';
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'match-score';
+
+        if (teamName === 'BYE') {
+            const byeBadge = document.createElement('span');
+            byeBadge.className = 'badge-bye';
+            byeBadge.textContent = 'BYE';
+            row.appendChild(teamNameSpan);
+            row.appendChild(byeBadge);
+        } else {
+            scoreSpan.textContent = score !== undefined ? score : '0';
+            row.appendChild(teamNameSpan);
+
+            if (isWinner) {
+                const winnerIcon = document.createElement('span');
+                winnerIcon.className = 'winner-icon';
+                winnerIcon.textContent = '🏆';
+                row.appendChild(winnerIcon);
+            }
+
+            row.appendChild(scoreSpan);
+        }
+
+        return row;
+    }
+
+    // Open Edit Modal
+    function openEditModal(match) {
+        if (!isAdmin) {
+            alert('Only administrators can edit match details.');
+            return;
+        }
+
+        // Set match ID
+        document.getElementById('editMatchId').value = match.matchId;
+
+        // Display match info
+        const teamAName = match.teamA || 'TBD';
+        const teamBName = match.teamB || 'TBD';
+        document.getElementById('displayTeams').textContent = `${teamAName} vs ${teamBName}`;
+        document.getElementById('displayMatchIndex').textContent = match.matchIndex;
+
+        // Update team labels in score section
+        document.getElementById('teamALabel').textContent = teamAName;
+        document.getElementById('teamBLabel').textContent = teamBName;
+
+        // Set date and time
+        if (match.matchDate) {
+            const date = new Date(match.matchDate);
+
+            // Set date input (YYYY-MM-DD format)
+            const yearStr = date.getFullYear();
+            const monthStr = String(date.getMonth() + 1).padStart(2, '0');
+            const dayStr = String(date.getDate()).padStart(2, '0');
+            document.getElementById('editMatchDate').value = `${yearStr}-${monthStr}-${dayStr}`;
+
+            // Set time select (HH:MM format)
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const timeStr = `${hours}:${minutes}`;
+
+            const timeSelect = document.getElementById('editMatchTime');
+
+            // Check if current time exists in TIME_SLOTS
+            if (TIME_SLOTS.includes(timeStr)) {
+                timeSelect.value = timeStr;
+            } else {
+                // Add the current time as an option if it doesn't exist in the predefined slots
+                const existingCustomOption = Array.from(timeSelect.options).find(
+                    opt => opt.value === timeStr
+                );
+
+                if (!existingCustomOption) {
+                    const customOption = document.createElement('option');
+                    customOption.value = timeStr;
+                    customOption.textContent = timeStr;
+                    timeSelect.appendChild(customOption);
+                }
+
+                timeSelect.value = timeStr;
+            }
+        } else {
+            document.getElementById('editMatchDate').value = '';
+            document.getElementById('editMatchTime').value = '';
+        }
+
+        // Set stadium
+        document.getElementById('editMatchStadium').value = match.stadium || '';
+
+        // Set referee
+        document.getElementById('editMatchReferee').value = match.referee || '';
+
+        // Set scores
+        document.getElementById('editScoreA').value = match.scoreA || 0;
+        document.getElementById('editScoreB').value = match.scoreB || 0;
+
+        // Show modal
+        editMatchModal.show();
+    }
+
+    // Save Match Changes
+    async function saveMatchChanges() {
+        const matchId = document.getElementById('editMatchId').value;
+        const newDate = document.getElementById('editMatchDate').value;
+        const newTime = document.getElementById('editMatchTime').value;
+        const newStadium = document.getElementById('editMatchStadium').value;
+        const newReferee = document.getElementById('editMatchReferee').value;
+        const scoreA = parseInt(document.getElementById('editScoreA').value);
+        const scoreB = parseInt(document.getElementById('editScoreB').value);
+
+        // Validation
+        if (!newDate || !newTime) {
+            alert('Please select both date and time for the match.');
+            return;
+        }
+
+        if (!newStadium) {
+            alert('Please select a stadium for the match.');
+            return;
+        }
+
+        if (!newReferee) {
+            if (!confirm('WARNING: You are saving without assigning a referee. Do you want to continue?')) {
+                return;
+            }
+        }
+
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+
+        if (token) {
+            headers['Authorization'] = 'Bearer ' + token;
+        }
+
+        // Combine date and time into ISO format
+        const dateTimeString = `${newDate}T${newTime}:00`;
+
+        const requests = [];
+
+        try {
+            // Update Date
+            requests.push(
+                fetch('/api/tournaments/match/update_date', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ matchId: matchId, newDate: dateTimeString })
+                })
+            );
+
+            // Update Stadium
+            requests.push(
+                fetch('/api/tournaments/match/update_stadium', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ matchId: matchId, newStadium: newStadium })
+                })
+            );
+
+            // Update Referee
+            requests.push(
+                fetch('/api/tournaments/match/update_referee', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ matchId: matchId, newReferee: newReferee })
+                })
+            );
+
+            // Update Scores
+            requests.push(
+                fetch('/api/tournaments/match/update_scores', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ matchId: matchId, scoreA: scoreA, scoreB: scoreB })
+                })
+            );
+
+            const responses = await Promise.all(requests);
+
+            let hasError = false;
+            for (const response of responses) {
+                if (!response.ok) {
+                    hasError = true;
+                    const text = await response.text();
+                    alert("Server error: " + text);
+                }
+            }
+
+            if (!hasError) {
+                alert('Match updated successfully!');
+                editMatchModal.hide();
+                location.reload();
+            }
+
+        } catch (error) {
+            alert('Connection error: ' + error.message);
+        }
+    }
+
+    // ADMIN ONLY: Set winner function
+    function setWinner(matchId, teamName) {
+        if (!isAdmin) {
+            console.log('Only admins can set winners');
+            return;
+        }
+
+        if (!teamName || teamName === 'Waiting...' || teamName === 'null' || teamName === '') {
+            console.log('Cannot set empty team as winner');
+            return;
+        }
+
+        if (!confirm(`Declare ${teamName} as the winner?`)) {
+            return;
+        }
+
+        const requestBody = {
+            matchId: matchId,
+            winner: teamName
+        };
+
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+
+        if (token) {
+            headers['Authorization'] = 'Bearer ' + token;
+        }
+
+        fetch('/api/tournaments/match/update_winner', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(requestBody)
+        })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+            })
+            .catch(error => alert("Error: " + error.message));
+    }
+</script>
+
+</body>
+</html>

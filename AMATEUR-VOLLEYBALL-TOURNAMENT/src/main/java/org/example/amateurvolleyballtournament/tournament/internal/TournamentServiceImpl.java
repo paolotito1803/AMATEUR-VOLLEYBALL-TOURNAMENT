@@ -1,5 +1,6 @@
 package org.example.amateurvolleyballtournament.tournament.internal;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.example.amateurvolleyballtournament.teams.TeamDTO;
 import org.example.amateurvolleyballtournament.teams.TeamService;
@@ -11,6 +12,8 @@ import org.example.amateurvolleyballtournament.users.internal.UserRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -33,10 +36,41 @@ class TournamentServiceImpl implements TournamentService {
     }
 
     private void verifyAdmin() {
-//        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
-//        if (!userService.isAdmin(currentUser)) {
-//            throw new IllegalArgumentException("Access Denied: User is not an Admin");
-//        }
+        try {
+            // Get current HTTP request
+            ServletRequestAttributes attributes =
+                    (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
+            // Fix for seeder
+            // If no HTTP request: execute
+            if (attributes == null) {
+                log.warn("verifyAdmin: Executing outside request context (seeder/scheduled task allowed)");
+                return;
+            }
+
+            HttpServletRequest request = attributes.getRequest();
+            String authHeader = request.getHeader("Authorization");
+
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                log.warn("verifyAdmin: No valid Authorization header found");
+                throw new IllegalArgumentException("Access Denied: No authentication token provided");
+            }
+
+            // Use UserService to verify Admin
+            if (!userService.isAdminFromToken(authHeader)) {
+                String role = userService.extractRoleFromToken(authHeader);
+                log.warn("verifyAdmin: User with role '{}' attempted admin action", role);
+                throw new IllegalArgumentException("Access Denied: User is not an Admin");
+            }
+
+            log.debug("verifyAdmin: Admin access granted");
+
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error verifying admin: {}", e.getMessage(), e);
+            throw new IllegalArgumentException("Access Denied: Authentication failed");
+        }
     }
 
     @Override

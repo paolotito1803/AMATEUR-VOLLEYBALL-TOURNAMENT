@@ -132,7 +132,7 @@ class TournamentPersistence {
 
         matchEntity.setMatchDate(date);
 
-        matchRepository.save(matchEntity); // <--- FONDAMENTALE
+        matchRepository.save(matchEntity);
         return Optional.of(matchEntity);
     }
 
@@ -144,7 +144,7 @@ class TournamentPersistence {
         matchEntity.setStadium(stadium);
 
 
-        matchRepository.save(matchEntity); // <--- FONDAMENTALE
+        matchRepository.save(matchEntity);
         return Optional.of(matchEntity);
     }
 

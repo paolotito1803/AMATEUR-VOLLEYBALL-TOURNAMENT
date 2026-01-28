@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Tournament Bracket</title>
+    <title>Tournament Bracket - View Only</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
         .hero-section {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -17,7 +18,6 @@
             padding: 30px 20px;
             background-color: #f8f9fa;
             border-radius: 10px;
-            min-height: 400px;
         }
         .stage-column {
             display: flex;
@@ -66,8 +66,6 @@
             justify-content: space-between;
             align-items: center;
             transition: background 0.2s;
-            position: relative;
-            z-index: 10;
         }
         .team-row:not(:last-child) {
             border-bottom: 1px solid #dee2e6;
@@ -76,14 +74,6 @@
             font-weight: 500;
             font-size: 1rem;
             color: #212529;
-        }
-
-        /* ADMIN MODE: Clickable team rows */
-        .team-row.clickable {
-            cursor: pointer;
-        }
-        .team-row.clickable:hover:not(.locked):not(.waiting) {
-            background-color: #e2e6ea;
         }
 
         /* State classes */
@@ -119,11 +109,6 @@
             text-decoration: line-through;
         }
 
-        .team-row.locked {
-            pointer-events: none !important;
-            opacity: 0.8;
-        }
-
         .badge-bye {
             background-color: #6c757d;
             color: white;
@@ -138,6 +123,29 @@
             font-weight: 700;
             color: #667eea;
             min-width: 30px;
+            text-align: center;
+        }
+
+        .match-info-section {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-top: 1px solid #dee2e6;
+            font-size: 0.85rem;
+        }
+
+        .match-info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .match-info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .match-info-item i {
+            margin-right: 8px;
+            width: 20px;
             text-align: center;
         }
 
@@ -183,52 +191,33 @@
             background-color: #f8f9fa;
             opacity: 0.6;
         }
-
-        .admin-badge {
-            background-color: #dc3545;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .view-mode-badge {
-            background-color: #6c757d;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 0.85rem;
-        }
     </style>
 </head>
 
 <body class="bg-light">
 
+<!-- NAVBAR -->
 <nav class="navbar navbar-dark bg-dark mb-0">
     <div class="container">
         <a class="navbar-brand fw-bold" href="/">🏐 Volleyball Tournament</a>
         <div class="d-flex align-items-center gap-3">
             <span id="nav-user" class="text-white"></span>
-            <span id="mode-badge" class="view-mode-badge">View Mode</span>
             <a href="/" class="btn btn-outline-light btn-sm">Home</a>
             <button onclick="logout()" class="btn btn-danger btn-sm" id="logout-btn" style="display: none;">Logout</button>
         </div>
     </div>
 </nav>
 
+<!-- HERO SECTION -->
 <section class="hero-section">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h2 id="tournament-name" class="mb-2 fw-bold" th:text="${tournament.tournamentName}">Tournament Bracket</h2>
-                <p id="tournament-info" class="mb-0 opacity-75">
-                    <span th:text="${tournament.teams != null ? tournament.teams.size() : 0}">0</span> Teams •
-                    <span th:text="${tournament.matches != null ? tournament.matches.size() : 0}">0</span> Total Matches
-                </p>
+                <h2 id="tournament-name" class="mb-2 fw-bold">Tournament Bracket</h2>
+                <p id="tournament-info" class="mb-0 opacity-75"></p>
             </div>
             <div>
-                <a th:href="@{/tournament/{id}/view(id=${tournament.id})}" class="btn btn-light">
+                <a href="#" onclick="goBack()" class="btn btn-light">
                     ← Back to Tournament
                 </a>
             </div>
@@ -237,20 +226,18 @@
 </section>
 
 <div class="container-fluid py-4">
-    <div id="loading" class="text-center py-5" style="display: none;">
+    <!-- LOADING -->
+    <div id="loading" class="text-center py-5">
         <div class="spinner-border text-primary" role="status"></div>
         <p class="mt-3">Loading bracket...</p>
     </div>
 
-    <div id="bracket-view">
+    <!-- BRACKET VIEW -->
+    <div id="bracket-view" style="display: none;">
 
+        <!-- LEGEND -->
         <div class="legend">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">Legend</h5>
-                <div id="admin-notice" style="display: none;">
-                    <span class="badge bg-danger">🔓 Admin Mode: Click teams to set winner</span>
-                </div>
-            </div>
+            <h5 class="mb-3">Legend</h5>
             <div class="d-flex flex-wrap">
                 <div class="legend-item">
                     <div class="legend-box legend-winner"></div>
@@ -258,7 +245,7 @@
                 </div>
                 <div class="legend-item">
                     <div class="legend-box legend-waiting"></div>
-                    <span>⏳ Waiting</span>
+                    <span>⏳ Waiting for Opponent</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-box legend-loser"></div>
@@ -267,115 +254,109 @@
             </div>
         </div>
 
+        <!-- BRACKET CONTAINER (filled by JavaScript) -->
         <div class="bracket-container">
+            <!-- Bracket will be rendered here -->
         </div>
     </div>
 </div>
 
-<footer class="bg-dark text-white py-4 mt-5">
-    <div class="container text-center">
-        <p class="mb-0">&copy; 2025 Volleyball Tournament. All rights reserved.</p>
-    </div>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<script th:inline="javascript">
-    const tournamentData = {
-        id: /*[[${tournament.id}]]*/ '',
-        tournamentName: /*[[${tournament.tournamentName}]]*/ '',
-        teams: [
-            /*[# th:each="team : ${tournament.teams}"]*/
-            {
-                id: /*[[${team.id}]]*/ '',
-                name: /*[[${team.name}]]*/ ''
-            }/*[# th:if="${!teamStat.last}"]*/, /*[/]*/
-            /*[/]*/
-        ],
-        matches: [
-            /*[# th:each="match : ${tournament.matches}"]*/
-            {
-                matchId: /*[[${match.matchId}]]*/ '',
-                stadium: /*[[${match.stadium}]]*/ '',
-                freeSeats: /*[[${match.freeSeats}]]*/ 0,
-                matchDate: /*[[${match.matchDate != null ? match.matchDate.toString() : ''}]]*/ '',
-                referee: /*[[${match.referee}]]*/ '',
-                stage: /*[[${match.stage}]]*/ 0,
-                matchIndex: /*[[${match.matchIndex}]]*/ 0,
-                teamA: /*[[${match.teamA}]]*/ '',
-                teamB: /*[[${match.teamB}]]*/ '',
-                scoreA: /*[[${match.scoreA}]]*/ 0,
-                scoreB: /*[[${match.scoreB}]]*/ 0,
-                winner: /*[[${match.winner}]]*/ '',
-                nextMatch: /*[[${match.nextMatch}]]*/ ''
-            }/*[# th:if="${!matchStat.last}"]*/, /*[/]*/
-            /*[/]*/
-        ]
-    };
-</script>
-
 <script>
-    // Auth Logic
-    const token = localStorage.getItem('jwt_token');
-    const user = token ? JSON.parse(localStorage.getItem('user_info')) : null;
-    let isAdmin = false;
+    let token = localStorage.getItem('jwt_token');
+    let user = null;
+
+    try {
+        const userStr = localStorage.getItem('user_info');
+        if (userStr) {
+            user = JSON.parse(userStr);
+        }
+    } catch (e) {
+        console.error('Error parsing user info:', e);
+    }
+
+    // If user is ADMIN, redirect to admin_bracket page
+    if (user && user.role === 'ADMIN') {
+        const pathParts = window.location.pathname.split('/');
+        const tournamentId = pathParts[pathParts.length - 2];
+        console.log('Admin detected, redirecting to admin_bracket...');
+        window.location.href = `/tournament/${tournamentId}/admin_bracket`;
+    }
 
     if (user) {
         document.getElementById('nav-user').textContent = `Hello, ${user.username}!`;
         document.getElementById('logout-btn').style.display = 'block';
-
-        // Check if user is ADMIN
-        isAdmin = user.role === 'ADMIN';
-
-        if (isAdmin) {
-            document.getElementById('mode-badge').textContent = 'Admin Mode';
-            document.getElementById('mode-badge').className = 'admin-badge';
-            document.getElementById('admin-notice').style.display = 'block';
-        }
     }
 
     function logout() {
         localStorage.removeItem('jwt_token');
         localStorage.removeItem('user_info');
-        window.location.href = '/';
+        window.location.href = '/users/login';
     }
 
-    // Main initialization
-    document.addEventListener('DOMContentLoaded', () => {
-        if (tournamentData) {
-            renderBracket(tournamentData);
-        } else {
-            document.getElementById('loading').style.display = 'block';
+    function goBack() {
+        const pathParts = window.location.pathname.split('/');
+        const tournamentId = pathParts[pathParts.length - 2];
+        window.location.href = `/tournament/${tournamentId}/view`;
+    }
+
+    // Get tournament ID from URL
+    const pathParts = window.location.pathname.split('/');
+    const tournamentId = pathParts[pathParts.length - 2]; // Assumes /tournament/{id}/bracket
+
+    async function loadBracket() {
+        try {
+            const headers = {};
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+
+            const response = await fetch('/api/tournaments/all', { headers });
+
+            if (!response.ok) throw new Error('Error loading tournament');
+
+            const tournaments = await response.json();
+            const tournament = tournaments.find(t => t.id === tournamentId);
+
+            if (!tournament) {
+                throw new Error('Tournament not found');
+            }
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('bracket-view').style.display = 'block';
+
+            renderBracket(tournament);
+        } catch (error) {
+            console.error(error);
             document.getElementById('loading').innerHTML =
-                `<div class="alert alert-danger">Error: Tournament data not found.</div>`;
+                `<div class="alert alert-danger">${error.message}</div>`;
         }
-    });
+    }
 
     function renderBracket(tournament) {
-        const matchesByStage = {};
-        const matches = tournament.matches || [];
+        // Update header
+        document.getElementById('tournament-name').textContent = tournament.tournamentName;
+        const matchesCount = tournament.matches?.length || 0;
+        const teamsCount = tournament.teams?.length || 0;
+        document.getElementById('tournament-info').textContent =
+            `${teamsCount} teams • ${matchesCount} total matches`;
 
-        matches.forEach(match => {
+        // Group matches by stage
+        const matchesByStage = {};
+        tournament.matches?.forEach(match => {
             if (!matchesByStage[match.stage]) {
                 matchesByStage[match.stage] = [];
             }
             matchesByStage[match.stage].push(match);
         });
 
+        // Render bracket
         const container = document.querySelector('.bracket-container');
         container.innerHTML = '';
 
         const sortedStages = Object.keys(matchesByStage).sort((a, b) => a - b);
-        const teamCount = tournament.teams ? tournament.teams.length : 0;
-
-        if (sortedStages.length === 0) {
-            container.innerHTML = '<p class="p-4 text-muted">No matches scheduled yet.</p>';
-            return;
-        }
 
         sortedStages.forEach((stage, index) => {
             const stageMatches = matchesByStage[stage].sort((a, b) => a.matchIndex - b.matchIndex);
-            const stageName = getStageName(stage, teamCount, sortedStages.length);
+
+            const stageName = getStageName(stage, tournament.teams?.length);
             const isLastStage = index === sortedStages.length - 1;
 
             const stageColumn = createStageColumn(stage, stageName, stageMatches, isLastStage);
@@ -383,28 +364,26 @@
         });
     }
 
-    function getStageName(stage, teamCount, totalStages) {
+    function getStageName(stage, teamCount) {
         const stageNum = parseInt(stage);
-
-        if (teamCount === 16) {
-            if (stageNum === 1) return 'Round of 16';
-            if (stageNum === 2) return 'Quarter-finals';
-            if (stageNum === 3) return 'Semi-finals';
-            if (stageNum === 4) return 'Final';
-        } else if (teamCount === 8) {
-            if (stageNum === 1) return 'Quarter-finals';
-            if (stageNum === 2) return 'Semi-finals';
-            if (stageNum === 3) return 'Final';
-        } else if (teamCount === 4) {
-            if (stageNum === 1) return 'Semi-finals';
-            if (stageNum === 2) return 'Final';
-        } else if (teamCount === 2) {
+        if (stageNum === 1) {
+            if (teamCount === 16) return 'Round of 16';
+            if (teamCount === 8) return 'Quarterfinals';
+            if (teamCount === 4) return 'Semifinals';
+            if (teamCount === 2) return 'Final';
+            return `Round ${stageNum}`;
+        } else if (stageNum === 2) {
+            if (teamCount === 16) return 'Quarterfinals';
+            if (teamCount === 8) return 'Semifinals';
+            if (teamCount === 4) return 'Final';
+            return `Round ${stageNum}`;
+        } else if (stageNum === 3) {
+            if (teamCount === 16) return 'Semifinals';
+            if (teamCount === 8) return 'Final';
+            return `Round ${stageNum}`;
+        } else if (stageNum === 4) {
             return 'Final';
         }
-
-        if (stageNum === totalStages && totalStages > 1) return 'Final';
-        if (stageNum === totalStages - 1 && totalStages > 2) return 'Semi-finals';
-
         return `Round ${stageNum}`;
     }
 
@@ -418,9 +397,10 @@
         column.appendChild(header);
 
         matches.forEach(match => {
-            // if (match.teamA === 'BYE' || match.teamB === 'BYE') {
-            //     return;
-            // }
+            // Skip BYE matches completely
+            if (match.teamA === 'BYE' || match.teamB === 'BYE') {
+                return;
+            }
 
             const matchCard = createMatchCard(match);
             column.appendChild(matchCard);
@@ -436,6 +416,7 @@
         const isMatchReady = match.teamA && match.teamA !== '' && match.teamB && match.teamB !== '';
         const hasWinner = match.winner && match.winner !== '';
 
+        // Match header
         const header = document.createElement('div');
         header.className = 'match-header';
         header.innerHTML = `<span class="match-index">Match #${match.matchIndex}</span>`;
@@ -443,44 +424,61 @@
 
         // Team A
         const teamARow = createTeamRow(
-            match,
             match.teamA,
             match.scoreA,
             hasWinner && match.winner === match.teamA,
             hasWinner && match.winner !== match.teamA,
-            !isMatchReady,
-            hasWinner || !isMatchReady
+            !isMatchReady
         );
         card.appendChild(teamARow);
 
         // Team B
         const teamBRow = createTeamRow(
-            match,
             match.teamB,
             match.scoreB,
             hasWinner && match.winner === match.teamB,
             hasWinner && match.winner !== match.teamB,
-            !isMatchReady,
-            hasWinner || !isMatchReady
+            !isMatchReady
         );
         card.appendChild(teamBRow);
+
+        // Match info section
+        const infoSection = document.createElement('div');
+        infoSection.className = 'match-info-section';
+
+        let infoHTML = '';
+
+        if (match.matchDate) {
+            const date = new Date(match.matchDate);
+            const formattedDate = date.toLocaleString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            infoHTML += `<div class="match-info-item"><i class="bi bi-calendar-event text-primary"></i><span>${formattedDate}</span></div>`;
+        }
+
+        if (match.stadium) {
+            infoHTML += `<div class="match-info-item"><i class="bi bi-geo-alt text-danger"></i><span>${match.stadium}</span></div>`;
+        }
+
+        if (match.referee) {
+            infoHTML += `<div class="match-info-item"><i class="bi bi-person-badge text-success"></i><span>${match.referee}</span></div>`;
+        }
+
+        if (infoHTML !== '') {
+            infoSection.innerHTML = infoHTML;
+            card.appendChild(infoSection);
+        }
 
         return card;
     }
 
-    function createTeamRow(match, teamName, score, isWinner, isLoser, isWaiting, isLocked) {
+    function createTeamRow(teamName, score, isWinner, isLoser, isWaiting) {
         const row = document.createElement('div');
         row.className = 'team-row';
-
-        // Add clickable class only if ADMIN and match is not locked/waiting
-        if (isAdmin && !isLocked && !isWaiting && teamName && teamName !== '') {
-            row.classList.add('clickable');
-            row.setAttribute('data-match-id', match.matchId);
-            row.setAttribute('data-team', teamName);
-            row.onclick = function() {
-                setWinner(this.getAttribute('data-match-id'), this.getAttribute('data-team'));
-            };
-        }
 
         if (isWinner) {
             row.classList.add('winner');
@@ -488,10 +486,6 @@
             row.classList.add('loser');
         } else if (isWaiting || !teamName || teamName === '') {
             row.classList.add('waiting');
-        }
-
-        if (isLocked) {
-            row.classList.add('locked');
         }
 
         const teamNameSpan = document.createElement('span');
@@ -508,7 +502,7 @@
             row.appendChild(teamNameSpan);
             row.appendChild(byeBadge);
         } else {
-            scoreSpan.textContent = score !== undefined ? score : '0';
+            scoreSpan.textContent = score || '0';
             row.appendChild(teamNameSpan);
 
             if (isWinner) {
@@ -524,49 +518,8 @@
         return row;
     }
 
-    // ADMIN ONLY: Set winner function
-    function setWinner(matchId, teamName) {
-        if (!isAdmin) {
-            console.log('Only admins can set winners');
-            return;
-        }
-
-        if (!teamName || teamName === 'Waiting...' || teamName === 'null' || teamName === '') {
-            console.log('Cannot set empty team as winner');
-            return;
-        }
-
-        if (!confirm(`Declare ${teamName} as the winner?`)) {
-            return;
-        }
-
-        const requestBody = {
-            matchId: matchId,
-            winner: teamName
-        };
-
-        const headers = {
-            'Content-Type': 'application/json'
-        };
-
-        if (token) {
-            headers['Authorization'] = 'Bearer ' + token;
-        }
-
-        fetch('/api/tournaments/match/update_winner', {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify(requestBody)
-        })
-            .then(response => {
-                if (response.ok) {
-                    location.reload();
-                } else {
-                    return response.text().then(text => { throw new Error(text) });
-                }
-            })
-            .catch(error => alert("Error: " + error.message));
-    }
+    // Initialize
+    document.addEventListener('DOMContentLoaded', loadBracket);
 </script>
 
 </body>
