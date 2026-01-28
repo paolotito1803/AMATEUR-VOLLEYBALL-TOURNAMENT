@@ -7,13 +7,13 @@ import org.example.amateurvolleyballtournament.tournament.MatchDTO;
 import org.example.amateurvolleyballtournament.tournament.TournamentDTO;
 import org.example.amateurvolleyballtournament.tournament.TournamentService;
 import org.example.amateurvolleyballtournament.users.UsersService;
+import org.example.amateurvolleyballtournament.users.internal.UserRepository;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.Console;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Stream;
 
 
 @Slf4j
@@ -23,25 +23,20 @@ class TournamentServiceImpl implements TournamentService {
     private final TeamService teamService;
     private final TournamentPersistence tournamentPersistence;
     private final MatchRepository matchRepository;
-    private final UsersService usersService;
+    private final UsersService userService;
 
-    public TournamentServiceImpl(TeamService teamService, TournamentPersistence tournamentPersistence, MatchRepository matchRepository, UsersService usersService) {
+    TournamentServiceImpl(TeamService teamService, TournamentPersistence tournamentPersistence, MatchRepository matchRepository, UsersService usersService) {
         this.teamService = teamService;
         this.tournamentPersistence = tournamentPersistence;
         this.matchRepository = matchRepository;
-        this.usersService = usersService;
+        this.userService = usersService;
     }
 
     private void verifyAdmin() {
-        // TODO: IMPLEMENT AUTH SECURITY
-        // Something like:
-        // String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
-        // if (!usersService.isAdmin(currentUserId)) {
-        //     throw new IllegalArgumentException("Access Denied: User is not an Admin");
-        // }
-        // For now it's just allowed
-
-        // Also: some of these don't require only admin, but maybe coach or referee, so should be considered individually
+        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!userService.isAdmin(currentUser)) {
+            throw new IllegalArgumentException("Access Denied: User is not an Admin");
+        }
     }
 
     @Override
