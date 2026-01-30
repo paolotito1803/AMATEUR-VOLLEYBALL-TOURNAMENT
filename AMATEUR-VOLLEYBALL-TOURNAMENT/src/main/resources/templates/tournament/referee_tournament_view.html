@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${tournament.tournamentName} + ' - Referee View'">Tournament Details - Referee View</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/dist/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+        }
+        body { background-color: #f8f9fc; font-family: 'Inter', sans-serif; }
+        .hero-header {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-bottom: 5px solid var(--success-color);
+        }
+        .info-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            transition: transform 0.2s;
+        }
+        .match-item {
+            border-left: 4px solid var(--primary-color);
+            margin-bottom: 1.5rem;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+        .match-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+        .match-item.disabled {
+            opacity: 0.6;
+            border-left-color: #dee2e6;
+        }
+        .stage-title {
+            color: var(--primary-color);
+            font-weight: 700;
+            border-bottom: 2px solid #e3e6f0;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        .score-display {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #2e59d9;
+            min-width: 80px;
+            text-align: center;
+            background: linear-gradient(135deg, #f8f9fc 0%, #e3e6f0 100%);
+            padding: 0.5rem;
+            border-radius: 8px;
+        }
+        .navbar-brand {
+            margin-left: 40px;
+        }
+        .winner-label {
+            color: var(--success-color);
+            font-weight: bold;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-top: 0.25rem;
+        }
+        .match-header {
+            background: linear-gradient(to right, #f8f9fc, transparent);
+            padding: 0.75rem 1rem;
+            margin: -1.5rem -1.5rem 1rem -1.5rem;
+            border-radius: 8px 8px 0 0;
+            border-bottom: 2px solid #e3e6f0;
+        }
+        .match-detail-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+        .match-detail-item:last-child {
+            border-bottom: none;
+        }
+        .match-detail-icon {
+            width: 28px;
+            height: 28px;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+        }
+        .match-detail-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--secondary-color);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .match-detail-value {
+            font-size: 0.95rem;
+            color: #2e3338;
+            font-weight: 500;
+        }
+        .seats-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .seats-available {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .seats-low {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .seats-full {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .team-vs-section {
+            background-color: #f8f9fc;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        /* Score Modal Styles */
+        .score-input-container {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .score-input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            max-width: 160px;
+        }
+        .team-label {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            text-align: center;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .score-input {
+            width: 100%;
+            font-size: 2rem;
+            font-weight: 800;
+            text-align: center;
+            padding: 0.5rem;
+            border: 3px solid #dee2e6;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        .score-input:focus {
+            border-color: #ffc107;
+            box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+            outline: none;
+        }
+        .vs-separator {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #6c757d;
+            margin-top: 3.5rem;
+        }
+        .winner-indicator {
+            margin-top: 0.75rem;
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 0.5rem;
+        }
+        .winner-badge {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .declare-winner-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+            white-space: nowrap;
+        }
+        .declare-winner-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        }
+        .not-my-match-badge {
+            background-color: #6c757d;
+            color: white;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">🏐 Volleyball Tournament</a>
+    </div>
+</nav>
+
+<header class="hero-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4 fw-bold" th:text="${tournament.tournamentName}">Tournament Name</h1>
+                <p class="lead mb-0">
+                    <i class="fas fa-users me-2"></i>
+                    <span th:text="${tournament.teams.size()}">0</span> Registered Teams
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a th:href="@{/tournament/{id}/bracket_view(id=${tournament.id})}" class="btn btn-light btn-lg shadow-sm">
+                    <i class="fas fa-sitemap me-2"></i>View Full Bracket
+                </a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="container mb-5">
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card info-card mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="m-0 font-weight-bold text-primary">Participating Teams</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div th:each="team : ${tournament.teams}"
+                             class="list-group-item d-flex align-items-center border-0 py-2">
+                            <i class="fas fa-shield-alt text-secondary me-3"></i>
+                            <span th:text="${team.name}" class="fw-medium">Team Name</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <h3 class="mb-4"><i class="fas fa-calendar-alt me-2 text-primary"></i>Match Schedule - Referee View</h3>
+
+            <div th:if="${matchesByStage.isEmpty()}" class="alert alert-info shadow-sm">
+                <i class="fas fa-info-circle me-2"></i>
+                The schedule for this tournament has not been generated yet.
+            </div>
+
+            <div th:each="entry : ${matchesByStage}">
+                <h4 class="stage-title">
+                    <i class="fas fa-layer-group me-2"></i>
+                    <span th:text="${entry.key == 1 ? 'Round 1' :
+                                   (entry.key == 2 ? 'Quarter-finals' :
+                                   (entry.key == 3 ? 'Semi-finals' : 'Final'))}">Stage Name</span>
+                </h4>
+
+                <div th:each="match : ${entry.value}"
+                     class="match-item"
+                     th:classappend="${match.referee == null || match.referee == '' ? 'disabled' : ''}">
+
+                    <!-- Match Header -->
+                    <div class="match-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong class="text-primary"><i class="fas fa-hashtag me-1"></i>Match [[${match.matchIndex}]]</strong>
+                            </div>
+                            <div>
+                                <span th:if="${match.winner != null && match.winner != ''}"
+                                      class="badge bg-success me-2">
+                                    <i class="fas fa-trophy me-1"></i>Completed
+                                </span>
+                                <span th:unless="${match.winner != null && match.winner != ''}"
+                                      class="badge bg-warning text-dark me-2">
+                                    <i class="fas fa-clock me-1"></i>Upcoming
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Teams VS Section -->
+                    <div class="team-vs-section">
+                        <div class="row align-items-center text-center">
+                            <div class="col-5">
+                                <div class="fw-bold fs-5" th:text="${match.teamA != null ? match.teamA : 'TBD'}">Team A</div>
+                                <span th:if="${match.winner != null && match.winner == match.teamA}" class="winner-label">
+                                    <i class="fas fa-trophy"></i> WINNER
+                                </span>
+                            </div>
+
+                            <div class="col-2">
+                                <div class="score-display">
+                                    [[${match.scoreA}]] : [[${match.scoreB}]]
+                                </div>
+                                <small class="text-muted fw-bold">VS</small>
+                            </div>
+
+                            <div class="col-5">
+                                <div class="fw-bold fs-5" th:text="${match.teamB != null ? match.teamB : 'TBD'}">Team B</div>
+                                <span th:if="${match.winner != null && match.winner == match.teamB}" class="winner-label">
+                                    <i class="fas fa-trophy"></i> WINNER
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <div class="text-center mt-3">
+                        <!-- Show edit button only if this referee is assigned to this match -->
+                        <button class="btn btn-warning btn-sm fw-bold shadow-sm referee-edit-btn"
+                                th:attr="data-match-id=${match.matchId},
+                                        data-team-a=${match.teamA},
+                                        data-team-b=${match.teamB},
+                                        data-score-a=${match.scoreA},
+                                        data-score-b=${match.scoreB},
+                                        data-referee=${match.referee},
+                                        data-winner=${match.winner}"
+                                onclick="openScoreModal(this)">
+                            <i class="bi bi-pencil-square me-1"></i>
+                            <span th:text="${match.winner != null ? 'Update Score' : 'Enter Score'}">Enter Score</span>
+                        </button>
+
+                        <!-- Show message if not assigned to this match -->
+                        <span class="not-my-match-badge d-none">
+                            <i class="fas fa-lock me-1"></i>Not your match
+                        </span>
+                    </div>
+
+                    <!-- Match Details Grid -->
+                    <div class="row mt-3">
+                        <!-- Stadium -->
+                        <div class="col-md-6">
+                            <div class="match-detail-item">
+                                <div>
+                                    <div class="match-detail-label">Stadium</div>
+                                    <div class="match-detail-value" th:text="${match.stadium != null && match.stadium != '' ? match.stadium : 'Not Assigned'}">Stadium Name</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Referee -->
+                        <div class="col-md-6">
+                            <div class="match-detail-item">
+                                <div>
+                                    <div class="match-detail-label">Referee</div>
+                                    <div class="match-detail-value" th:text="${match.referee != null && match.referee != '' ? match.referee : 'Not Assigned'}">Referee Name</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Date & Time -->
+                        <div class="col-md-6">
+                            <div class="match-detail-item">
+                                <div>
+                                    <div class="match-detail-label">Date & Time</div>
+                                    <div class="match-detail-value"
+                                         th:text="${match.matchDate != null ?
+                                            (#temporals.hour(match.matchDate) == 0 && #temporals.minute(match.matchDate) == 0
+                                                ? #temporals.format(match.matchDate, 'MMM dd, yyyy')
+                                                : #temporals.format(match.matchDate, 'MMM dd, yyyy - HH:mm'))
+                                            : 'To Be Determined'}">
+                                        Date
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Available Seats -->
+                        <div class="col-md-6">
+                            <div class="match-detail-item">
+                                <div class="d-flex align-items-center justify-content-between w-100">
+                                    <div>
+                                        <div class="match-detail-label">Available Seats</div>
+                                        <div class="match-detail-value">
+                                            <span th:text="${match.freeSeats}">0</span> seats
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span th:if="${match.freeSeats > 50}" class="seats-badge seats-available">
+                                            <i class="fas fa-check-circle me-1"></i>Available
+                                        </span>
+                                        <span th:if="${match.freeSeats > 0 && match.freeSeats <= 50}" class="seats-badge seats-low">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Low Stock
+                                        </span>
+                                        <span th:if="${match.freeSeats <= 0}" class="seats-badge seats-full">
+                                            <i class="fas fa-times-circle me-1"></i>Sold Out
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Score Entry Modal -->
+<div class="modal fade" id="scoreModal" tabindex="-1" aria-labelledby="scoreModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold" id="scoreModalLabel">
+                    <i class="bi bi-clipboard-data me-2"></i>Enter Match Score
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="score-input-container">
+                    <div class="score-input-group">
+                        <div class="team-label" id="labelTeamA">Team A</div>
+                        <input type="number"
+                               id="scoreA"
+                               class="score-input"
+                               min="0"
+                               value="0"
+                               oninput="updateWinnerIndicator()">
+                        <div class="winner-indicator" id="winnerA"></div>
+                    </div>
+
+                    <div class="vs-separator">VS</div>
+
+                    <div class="score-input-group">
+                        <div class="team-label" id="labelTeamB">Team B</div>
+                        <input type="number"
+                               id="scoreB"
+                               class="score-input"
+                               min="0"
+                               value="0"
+                               oninput="updateWinnerIndicator()">
+                        <div class="winner-indicator" id="winnerB"></div>
+                    </div>
+                </div>
+
+                <!-- Hidden fields to store match data -->
+                <input type="hidden" id="modalMatchId">
+                <input type="hidden" id="modalNameA">
+                <input type="hidden" id="modalNameB">
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>Cancel
+                </button>
+                <button onclick="saveScoreOnly()" class="btn btn-primary fw-bold">
+                    <i class="bi bi-floppy me-1"></i>Save Score
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="bg-dark text-white py-4 mt-auto">
+    <div class="container text-center">
+        <p class="mb-0">&copy; 2025 Volleyball Tournament System. All rights reserved.</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ========================================
+    // GLOBAL VARIABLES
+    // ========================================
+    let jwtToken = null;
+    let currentUser = null;
+    let scoreModal = null;
+    let currentRefereeEmail = null;
+
+    // ========================================
+    // ROLE CHECK AND REDIRECT
+    // ========================================
+    // This page is for REFEREE role only
+    // If user is not a referee, redirect to tournament_view
+    (function checkRefereeRole() {
+        const token = localStorage.getItem('jwt_token');
+        const user = localStorage.getItem('user_info');
+
+        // If no user is logged in, redirect to normal view
+        if (!token || !user) {
+            redirectToNormalView();
+            return;
+        }
+
+        const userData = JSON.parse(user);
+
+        // If user is not a REFEREE, redirect to normal view
+        if (userData.role !== 'REFEREE') {
+            redirectToNormalView();
+            return;
+        }
+
+        // User is a referee - proceed with page functionality
+        initializeRefereePage(token, userData);
+    })();
+
+    /**
+     * Redirects to the normal tournament view page
+     */
+    function redirectToNormalView() {
+        const pathParts = window.location.pathname.split('/');
+        const tournamentId = pathParts[2]; // Extract tournament ID from URL
+        window.location.href = `/tournament/${tournamentId}/view`;
+    }
+
+    /**
+     * Initialize the referee page with user data
+     * @param {string} token - JWT authentication token
+     * @param {object} user - User data object
+     */
+    function initializeRefereePage(token, user) {
+        jwtToken = token;
+        currentUser = user;
+        currentRefereeEmail = user.email;
+        console.log("Ref: " + currentUser.username);
+
+        // Initialize Bootstrap modal
+        scoreModal = new bootstrap.Modal(document.getElementById('scoreModal'));
+
+        // Check which matches this referee can edit
+        checkRefereePermissions();
+    }
+
+    /**
+     * Checks which matches the current referee is assigned to and enables/disables edit buttons
+     */
+    function checkRefereePermissions() {
+        const refereeFullName = `${currentUser.surname} ${currentUser.username}`;
+
+        // Get all edit buttons
+        const editButtons = document.querySelectorAll('.referee-edit-btn');
+
+        editButtons.forEach(button => {
+            const matchReferee = button.getAttribute('data-referee');
+            const matchWinner = button.getAttribute('data-winner');
+            console.log("Match Referee: " + matchReferee);
+            const notMyMatchBadge = button.nextElementSibling;
+
+            // Check if this referee is assigned to this match
+            if (matchReferee === null || matchReferee === '' || matchReferee !== refereeFullName || matchWinner !== null) {
+                // Not assigned to this match - disable button and show message
+                button.classList.add('d-none');
+                if (notMyMatchBadge) {
+                    notMyMatchBadge.classList.remove('d-none');
+                }
+
+                // Also gray out the entire match item
+                const matchItem = button.closest('.match-item');
+                if (matchItem) {
+                    matchItem.classList.add('disabled');
+                }
+            }
+        });
+    }
+
+    // ========================================
+    // SCORE MODAL FUNCTIONS
+    // ========================================
+
+    /**
+     * Opens the score entry modal for a specific match
+     * @param {HTMLElement} button - The button element that was clicked
+     */
+    function openScoreModal(button) {
+        // Lazy initialization of modal if not already initialized
+        if (!scoreModal) {
+            scoreModal = new bootstrap.Modal(document.getElementById('scoreModal'));
+        }
+
+        // Extract match data from button attributes
+        const matchId = button.getAttribute('data-match-id');
+        const teamA = button.getAttribute('data-team-a');
+        const teamB = button.getAttribute('data-team-b');
+        const scoreA = button.getAttribute('data-score-a') || 0;
+        const scoreB = button.getAttribute('data-score-b') || 0;
+        const matchReferee = button.getAttribute('data-referee');
+        const matchWinner = button.getAttribute('data-winner');
+
+        // Double-check permission
+        const refereeFullName = `${currentUser.surname} ${currentUser.username}`;
+        if (matchReferee !== refereeFullName) {
+            alert("You are not assigned as referee for this match.");
+            return;
+        }
+
+        if(matchWinner !== null) {
+            alert("Cannot enter a score or a winner for a finished match");
+            return;
+        }
+
+        // Store match data in hidden fields
+        document.getElementById('modalMatchId').value = matchId;
+        document.getElementById('modalNameA').value = teamA;
+        document.getElementById('modalNameB').value = teamB;
+
+        // Set team labels
+        document.getElementById('labelTeamA').textContent = teamA;
+        document.getElementById('labelTeamB').textContent = teamB;
+
+        // Set initial scores
+        document.getElementById('scoreA').value = scoreA;
+        document.getElementById('scoreB').value = scoreB;
+
+        // Update winner indicator based on current scores
+        updateWinnerIndicator();
+
+        // Show the modal
+        scoreModal.show();
+    }
+
+    /**
+     * Updates the winner indicator badges based on current scores
+     * Shows "Leading" badge and "Declare Winner" button for the team with higher score
+     */
+    function updateWinnerIndicator() {
+        const scoreA = parseInt(document.getElementById('scoreA').value) || 0;
+        const scoreB = parseInt(document.getElementById('scoreB').value) || 0;
+
+        const winnerADiv = document.getElementById('winnerA');
+        const winnerBDiv = document.getElementById('winnerB');
+
+        // Clear previous indicators
+        winnerADiv.innerHTML = '';
+        winnerBDiv.innerHTML = '';
+
+        // Show "Leading" badge and "Declare Winner" button for the team with higher score
+        if (scoreA > scoreB && scoreA > 0) {
+            winnerADiv.innerHTML = `
+                <span class="winner-badge"><i class="bi bi-trophy-fill me-1"></i>Leading</span>
+                <button onclick="declareWinner('A')" class="declare-winner-btn">
+                    <i class="bi bi-check-circle-fill me-1"></i>Declare Winner
+                </button>
+            `;
+        } else if (scoreB > scoreA && scoreB > 0) {
+            winnerBDiv.innerHTML = `
+                <span class="winner-badge"><i class="bi bi-trophy-fill me-1"></i>Leading</span>
+                <button onclick="declareWinner('B')" class="declare-winner-btn">
+                    <i class="bi bi-check-circle-fill me-1"></i>Declare Winner
+                </button>
+            `;
+        }
+    }
+
+    /**
+     * Saves the match scores without declaring a winner
+     * Only updates the scores in the database
+     */
+    async function saveScoreOnly() {
+        // Get match data from hidden fields
+        const matchId = document.getElementById('modalMatchId').value;
+        const teamA = document.getElementById('modalNameA').value;
+        const teamB = document.getElementById('modalNameB').value;
+        const scoreA = parseInt(document.getElementById('scoreA').value) || 0;
+        const scoreB = parseInt(document.getElementById('scoreB').value) || 0;
+
+        // Confirm with user before submitting
+        if (!confirm(`Save score:\n${teamA} ${scoreA} - ${scoreB} ${teamB}\n\nNote: This will NOT declare a winner yet.`)) {
+            return;
+        }
+
+        try {
+            // Update match scores
+            const scoresRequest = {
+                matchId: matchId,
+                scoreA: scoreA,
+                scoreB: scoreB
+            };
+
+            const scoresResponse = await fetch('/api/tournaments/match/update_scores', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + jwtToken
+                },
+                body: JSON.stringify(scoresRequest)
+            });
+
+            if (!scoresResponse.ok) {
+                throw new Error(await scoresResponse.text());
+            }
+
+            // Success - show confirmation and reload page
+            alert("Score saved successfully!");
+            scoreModal.hide();
+            location.reload();
+
+        } catch (error) {
+            // Error handling
+            alert("Error saving score: " + error.message);
+            console.error('Error saving scores:', error);
+        }
+    }
+
+    /**
+     * Declares the winner for the match
+     * Saves both the scores AND declares the winner
+     * @param {string} team - 'A' or 'B' indicating which team won
+     */
+    async function declareWinner(team) {
+        // Get match data from hidden fields
+        const matchId = document.getElementById('modalMatchId').value;
+        const teamA = document.getElementById('modalNameA').value;
+        const teamB = document.getElementById('modalNameB').value;
+        const scoreA = parseInt(document.getElementById('scoreA').value) || 0;
+        const scoreB = parseInt(document.getElementById('scoreB').value) || 0;
+
+        // Validation: at least one team must score
+        if (scoreA === 0 && scoreB === 0) {
+            alert("Please enter valid scores (at least one team must score).");
+            return;
+        }
+
+        // Validation: scores must match the declared winner
+        if ((team === 'A' && scoreA <= scoreB) || (team === 'B' && scoreB <= scoreA)) {
+            alert("The winning team must have a higher score!");
+            return;
+        }
+
+        // Determine winner based on team parameter
+        const winner = team === 'A' ? teamA : teamB;
+
+        // Confirm with user before submitting
+        if (!confirm(`DECLARE WINNER:\n${teamA} ${scoreA} - ${scoreB} ${teamB}\n\nWinner: ${winner}\n\nThis action will finalize the match!`)) {
+            return;
+        }
+
+        try {
+            // Step 1: Update match scores
+            const scoresRequest = {
+                matchId: matchId,
+                scoreA: scoreA,
+                scoreB: scoreB
+            };
+
+            const scoresResponse = await fetch('/api/tournaments/match/update_scores', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + jwtToken
+                },
+                body: JSON.stringify(scoresRequest)
+            });
+
+            if (!scoresResponse.ok) {
+                throw new Error(await scoresResponse.text());
+            }
+
+            // Step 2: Update match winner
+            const winnerRequest = {
+                matchId: matchId,
+                winner: winner
+            };
+
+            const winnerResponse = await fetch('/api/tournaments/match/referee_update_winner', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + jwtToken
+                },
+                body: JSON.stringify(winnerRequest)
+            });
+
+            if (!winnerResponse.ok) {
+                throw new Error(await winnerResponse.text());
+            }
+
+            // Success - show confirmation and reload page
+            alert("Match completed successfully!\nWinner: " + winner);
+            scoreModal.hide();
+            location.reload();
+
+        } catch (error) {
+            // Error handling
+            alert("Error declaring winner: " + error.message);
+            console.error('Error declaring winner:', error);
+        }
+    }
+</script>
+
+</body>
+</html>
