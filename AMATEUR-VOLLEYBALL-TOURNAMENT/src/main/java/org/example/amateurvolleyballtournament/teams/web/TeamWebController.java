@@ -21,12 +21,12 @@ class TeamWebController {
         this.usersService = usersService;
     }
 
-    // URL: http://localhost:8080/teams/manager
-    @GetMapping("/manager")
-    public String showManagerPage(Model model) {
-        // TODO: ADD PROPER AUTHORIZATION LOGIC
-        model.addAttribute("teams", teamService.getAllTeams());
-
-        return "teams/manager";
-    }
+//    // URL: http://localhost:8080/teams/manager
+//    @GetMapping("/manager")
+//    public String showManagerPage(Model model) {
+//        // TODO: ADD PROPER AUTHORIZATION LOGIC
+//        model.addAttribute("teams", teamService.getAllTeams());
+//
+//        return "teams/manager";
+//    }
 }

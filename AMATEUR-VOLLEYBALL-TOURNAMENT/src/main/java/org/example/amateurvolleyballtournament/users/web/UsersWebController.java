@@ -23,14 +23,6 @@ class UsersWebController {
         this.tournamentService = tournamentService;
     }
 
-    // URL: http://localhost:8080/users/manager
-    @GetMapping("/manager")
-    public String showManagerPage(Model model) {
-        // TODO: aggiungi logica di sicurezza per admin
-        model.addAttribute("users", usersService.getAllUsers());
-        return "users/users"; // template Thymeleaf: templates/users/manager.html
-    }
-
     @GetMapping("/login")
     public String showLoginPage(Model model) {
         return "users/login";
@@ -39,11 +31,6 @@ class UsersWebController {
     @GetMapping("/registration")
     public String showRegistrationPage(Model model) {
         return "users/register";
-    }
-
-    @GetMapping("referee_dashboard")
-    public String showRefereeDashboard(Model model) {
-        return "users/RefereeDashboard";
     }
 
     @GetMapping("coach_dashboard")

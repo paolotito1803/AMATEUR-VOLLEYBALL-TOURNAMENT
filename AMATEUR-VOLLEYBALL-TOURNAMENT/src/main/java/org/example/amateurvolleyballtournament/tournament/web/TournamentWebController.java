@@ -32,13 +32,13 @@ class TournamentWebController {
     }
 
     // Seeds a tournament and lists all tournaments
-    @GetMapping("/manager")
-    public String showManager(Model model) {
-        model.addAttribute("tournaments", tournamentService.getAllTournaments());
-        model.addAttribute("allTeams", teamService.getAllTeams());
-
-        return "tournament/manager";
-    }
+//    @GetMapping("/manager")
+//    public String showManager(Model model) {
+//        model.addAttribute("tournaments", tournamentService.getAllTournaments());
+//        model.addAttribute("allTeams", teamService.getAllTeams());
+//
+//        return "tournament/manager";
+//    }
 
     // Allows the admin to create tournaments
     @GetMapping("/admin_dashboard")
@@ -143,6 +143,21 @@ class TournamentWebController {
         model.addAttribute("matchesByStage", matchesByStage);
 
         return "tournament/bracket_view";
+    }
+
+    @GetMapping("/{id}/referee_view")
+    public String showRefereeView(@PathVariable String id, Model model) {
+        TournamentDTO tournament = tournamentService.getTournamentDetails(id)
+                .orElseThrow(() -> new IllegalArgumentException("Tournament not found"));
+
+        Map<Integer, List<MatchDTO>> matchesByStage = tournament.matches().stream()
+                .sorted(Comparator.comparingInt(MatchDTO::matchIndex))
+                .collect(Collectors.groupingBy(MatchDTO::stage));
+
+        model.addAttribute("tournament", tournament);
+        model.addAttribute("matchesByStage", matchesByStage);
+
+        return "tournament/referee_tournament_view";
     }
 
     @GetMapping("/{id}/view")

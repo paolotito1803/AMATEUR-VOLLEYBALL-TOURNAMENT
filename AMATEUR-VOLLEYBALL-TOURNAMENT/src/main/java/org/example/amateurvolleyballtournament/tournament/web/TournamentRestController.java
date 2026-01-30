@@ -154,6 +154,16 @@ class TournamentRestController {
         return ResponseEntity.ok("Match winner " + request.winner() + " for match " + request.matchId() + "  updated successfully.");
     }
 
+    @PostMapping("/match/referee_update_winner")
+    public ResponseEntity<String> refUpdateMatchWinner(@RequestBody TournamentRequests.UpdateWinnerRequest request) {
+        tournamentService.refUpdateMatchWinner(
+                request.matchId(),
+                request.winner()
+        );
+
+        return ResponseEntity.ok("Match winner " + request.winner() + " for match " + request.matchId() + "  updated successfully.");
+    }
+
     @DeleteMapping("/delete/{tournamentId}")
     public ResponseEntity<String> deleteTournament(@PathVariable String tournamentId) {
         tournamentService.deleteTournament(tournamentId);

@@ -22,6 +22,8 @@ public interface TournamentService {
 
     void updateMatchWinner(String matchId, String winner);
 
+    void refUpdateMatchWinner(String matchId, String winner);
+
     void updateMatchFreeSeats(String matchId, int newFreeSeats);
 
     void updateMatchStadium(String matchId, String stadium);

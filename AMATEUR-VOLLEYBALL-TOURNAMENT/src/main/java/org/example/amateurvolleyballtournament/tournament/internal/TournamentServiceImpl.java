@@ -338,6 +338,16 @@ class TournamentServiceImpl implements TournamentService {
     }
 
     @Override
+    public void refUpdateMatchWinner(String matchId, String winner) {
+
+        if ("BYE".equalsIgnoreCase(winner)) {
+            throw new IllegalArgumentException("Cannot declare BYE as a winner.");
+        }
+
+        processMatchResult(matchId, winner);
+    }
+
+    @Override
     public void updateMatchScore(String matchId, int scoreA, int scoreB) {
         MatchEntity entity = tournamentPersistence.findMatch(matchId)
                 .orElseThrow(() -> new RuntimeException("Error getting match with matchId: " + matchId));
@@ -500,7 +510,6 @@ class TournamentServiceImpl implements TournamentService {
         tournamentPersistence.updateMatchFreeSeats(matchId, capacity);
     }
 
-    // TODO: Is it a useful function?
     @Override
     public List<TeamDTO> getTeams(String tournamentId) {
         List<TeamDTO> teamDTO = teamService.getAllTeams();
