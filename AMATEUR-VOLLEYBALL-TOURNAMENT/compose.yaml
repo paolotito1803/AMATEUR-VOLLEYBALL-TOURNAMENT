@@ -1,6 +1,20 @@
 services:
+  app:
+    build: .
+    ports:
+      - "8080:8080" # Host : Container
+    env_file: .env
+    environment:
+      # Override db url for docker (name 'postgres', not 'localhost')
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/volleyball
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   postgres:
     image: 'postgres:18'
+    env_file: .env
     environment:
       - 'POSTGRES_DB=volleyball'
       - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
@@ -10,6 +24,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d volleyball" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
