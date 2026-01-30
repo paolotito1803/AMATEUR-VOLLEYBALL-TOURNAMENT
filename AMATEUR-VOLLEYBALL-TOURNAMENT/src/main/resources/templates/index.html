@@ -9,6 +9,9 @@
             color: white;
             padding: 80px 0;
         }
+        .col-md-3 {
+            margin: 40px auto auto;
+        }
         .tournament-card {
             transition: transform 0.2s;
             cursor: pointer;
@@ -112,15 +115,6 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3" id="referee-access" style="display: none;">
-                <div class="card quick-access-btn bg-warning text-white text-center h-100">
-                    <div class="card-body d-flex flex-column justify-content-center">
-                        <h3>⚖️</h3>
-                        <h5>Referee Dashboard</h5>
-                        <a href="/users/referee_dashboard" class="btn btn-light mt-3">Access</a>
-                    </div>
-                </div>
-            </div>
             <div class="col-md-3" id="viewer-access" style="display: none;">
                 <div class="card quick-access-btn bg-success text-white text-center h-100">
                     <div class="card-body d-flex flex-column justify-content-center">
@@ -187,7 +181,7 @@
         } else if (user.role === 'COACH') {
             document.getElementById('coach-access').style.display = 'block';
         } else if (user.role === 'REFEREE') {
-            document.getElementById('referee-access').style.display = 'block';
+            document.getElementById('quick-access-section').style.display = 'none';
         } else if (user.role === 'VIEWER') {
             document.getElementById('viewer-access').style.display = 'block';
         }
@@ -277,50 +271,68 @@
         container.innerHTML = '';
 
         tournaments.forEach(tournament => {
+            let isReferee;
             const progress = tournament.matchCount > 0
                 ? Math.round((tournament.completedMatches / tournament.matchCount) * 100)
                 : 0;
 
             const statusClass = progress === 100 ? 'text-success' : 'text-primary';
 
+            const user = localStorage.getItem('user_info');
+
+            if (user) {
+                const userData = JSON.parse(user);
+
+
+                isReferee = userData.role === 'REFEREE';
+            }
+
+            const targetUrl = isReferee
+                ? `/tournament/${tournament.id}/referee_view`
+                : `/tournament/${tournament.id}/view`;
+
             const card = `
-                <div class="col-md-4">
-                    <div class="card tournament-card shadow h-100" onclick="viewTournament('${tournament.id}')">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0">${tournament.tournamentName}</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="tournament-stats">
-                                <div class="stat-item">
-                                    <div class="stat-number">${tournament.teamCount}</div>
-                                    <div class="stat-label">Teams</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-number">${tournament.matchCount}</div>
-                                    <div class="stat-label">Matches</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-number">${progress}%</div>
-                                    <div class="stat-label">Complete</div>
-                                </div>
-                            </div>
-                            <div class="mt-3">
-                                <div class="progress" style="height: 8px;">
-                                    <div class="progress-bar bg-primary" role="progressbar"
-                                         style="width: ${progress}%"
-                                         aria-valuenow="${progress}"
-                                         aria-valuemin="0"
-                                         aria-valuemax="100">
+                        <div class="col-md-4 mb-4">
+                            <a href="${targetUrl}" class="text-decoration-none text-reset">
+                                <div class="card tournament-card shadow h-100">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="mb-0">${tournament.tournamentName}</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="tournament-stats">
+                                            <div class="stat-item text-center">
+                                                <div class="stat-number h4 mb-0">${tournament.teamCount}</div>
+                                                <div class="stat-label small text-muted">Teams</div>
+                                            </div>
+                                            <div class="stat-item text-center">
+                                                <div class="stat-number h4 mb-0">${tournament.matchCount}</div>
+                                                <div class="stat-label small text-muted">Matches</div>
+                                            </div>
+                                            <div class="stat-item text-center">
+                                                <div class="stat-number h4 mb-0">${progress}%</div>
+                                                <div class="stat-label small text-muted">Complete</div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-primary" role="progressbar"
+                                                     style="width: ${progress}%"
+                                                     aria-valuenow="${progress}"
+                                                     aria-valuemin="0"
+                                                     aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-white border-top-0">
+                                        <div class="btn btn-primary w-100">
+                                            ${isReferee ? 'Manage as Referee' : 'View Tournament'}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         </div>
-                        <div class="card-footer bg-white">
-                            <button class="btn btn-primary w-100">View Tournament</button>
-                        </div>
-                    </div>
-                </div>
-            `;
+                    `;
             container.innerHTML += card;
         });
     }

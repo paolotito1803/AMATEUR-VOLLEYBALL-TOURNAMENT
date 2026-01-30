@@ -240,7 +240,6 @@
         <a class="navbar-brand fw-bold" href="/">🏐 Volleyball Tournament</a>
         <div class="d-flex align-items-center gap-3">
             <span id="nav-user" class="text-white"></span>
-            <a href="/" class="btn btn-outline-light btn-sm">Home</a>
             <button onclick="logout()" class="btn btn-danger btn-sm" id="logout-btn" style="display: none;">Logout</button>
         </div>
     </div>
@@ -787,6 +786,8 @@
             return;
         }
 
+        console.log('Opening modal for match:', match);
+
         // Set match ID
         document.getElementById('editMatchId').value = match.matchId;
 
@@ -804,7 +805,7 @@
         if (match.matchDate) {
             const date = new Date(match.matchDate);
 
-            // Set date input (YYYY-MM-DD format)
+            // Set date input (YYYY-MM-DD format for type="date")
             const yearStr = date.getFullYear();
             const monthStr = String(date.getMonth() + 1).padStart(2, '0');
             const dayStr = String(date.getDate()).padStart(2, '0');
@@ -840,11 +841,31 @@
             document.getElementById('editMatchTime').value = '';
         }
 
-        // Set stadium
-        document.getElementById('editMatchStadium').value = match.stadium || '';
+        // Set stadium - handle null/empty/undefined
+        const stadiumSelect = document.getElementById('editMatchStadium');
+        const stadiumValue = match.stadium && match.stadium.trim() !== '' ? match.stadium : '';
+        console.log('Setting stadium to:', stadiumValue);
+        stadiumSelect.value = stadiumValue;
 
-        // Set referee
-        document.getElementById('editMatchReferee').value = match.referee || '';
+        // Set referee - handle null/empty/undefined
+        const refereeSelect = document.getElementById('editMatchReferee');
+        const refereeValue = match.referee && match.referee.trim() !== '' ? match.referee : '';
+        console.log('Setting referee to:', refereeValue);
+
+        // Check if the referee value exists in the dropdown
+        const refereeExists = Array.from(refereeSelect.options).some(opt => opt.value === refereeValue);
+
+        if (refereeValue && !refereeExists) {
+            console.warn('Referee not found in dropdown:', refereeValue);
+            // Add it as a custom option
+            const customOption = document.createElement('option');
+            customOption.value = refereeValue;
+            customOption.textContent = refereeValue;
+            refereeSelect.appendChild(customOption);
+        }
+
+        refereeSelect.value = refereeValue;
+        console.log('Referee dropdown value set to:', refereeSelect.value);
 
         // Set scores
         document.getElementById('editScoreA').value = match.scoreA || 0;
@@ -864,92 +885,69 @@
         const scoreA = parseInt(document.getElementById('editScoreA').value);
         const scoreB = parseInt(document.getElementById('editScoreB').value);
 
-        // Validation
         if (!newDate || !newTime) {
             alert('Please select both date and time for the match.');
             return;
         }
-
         if (!newStadium) {
             alert('Please select a stadium for the match.');
             return;
         }
-
-        if (!newReferee) {
+        if (!newReferee || newReferee === '') {
             if (!confirm('WARNING: You are saving without assigning a referee. Do you want to continue?')) {
                 return;
             }
         }
 
+        const dateTimeString = `${newDate}T${newTime}:00`;
+
         const headers = {
             'Content-Type': 'application/json'
         };
-
         if (token) {
             headers['Authorization'] = 'Bearer ' + token;
         }
 
-        // Combine date and time into ISO format
-        const dateTimeString = `${newDate}T${newTime}:00`;
+        const sendUpdate = async (url, payload, label) => {
+            console.log(`Sending ${label} update...`);
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(payload)
+            });
 
-        const requests = [];
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`${label}: ${text}`);
+            }
+            console.log(`${label} updated successfully.`);
+        };
 
         try {
-            // Update Date
-            requests.push(
-                fetch('/api/tournaments/match/update_date', {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify({ matchId: matchId, newDate: dateTimeString })
-                })
-            );
+            // 1. Update Date
+            await sendUpdate('/api/tournaments/match/update_date',
+                { matchId: matchId, newDate: dateTimeString }, 'Date');
 
-            // Update Stadium
-            requests.push(
-                fetch('/api/tournaments/match/update_stadium', {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify({ matchId: matchId, newStadium: newStadium })
-                })
-            );
+            // 2. Update Stadium
+            await sendUpdate('/api/tournaments/match/update_stadium',
+                { matchId: matchId, newStadium: newStadium }, 'Stadium');
 
-            // Update Referee
-            requests.push(
-                fetch('/api/tournaments/match/update_referee', {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify({ matchId: matchId, newReferee: newReferee })
-                })
-            );
+            // 3. Update Referee
+            await sendUpdate('/api/tournaments/match/update_referee',
+                { matchId: matchId, newReferee: newReferee }, 'Referee');
 
-            // Update Scores
-            requests.push(
-                fetch('/api/tournaments/match/update_scores', {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify({ matchId: matchId, scoreA: scoreA, scoreB: scoreB })
-                })
-            );
+            // 4. Update Scores
+            await sendUpdate('/api/tournaments/match/update_scores',
+                { matchId: matchId, scoreA: scoreA, scoreB: scoreB }, 'Scores');
 
-            const responses = await Promise.all(requests);
-
-            let hasError = false;
-            for (const response of responses) {
-                if (!response.ok) {
-                    hasError = true;
-                    const text = await response.text();
-                    alert("Server error: " + text);
-                }
-            }
-
-            if (!hasError) {
-                alert('Match updated successfully!');
-                editMatchModal.hide();
-                location.reload();
-            }
+            alert('Match updated successfully!');
+            editMatchModal.hide();
+            location.reload();
 
         } catch (error) {
-            alert('Connection error: ' + error.message);
+            console.error('Update failed:', error);
+            alert('Update failed: ' + error.message + '\n\nPartial updates may have been applied.');
+            location.reload();
         }
     }
 
