@@ -72,6 +72,9 @@
                 <li class="nav-item" id="nav-login-section">
                     <a class="nav-link" href="/users/login">Login</a>
                 </li>
+                <li class="nav-item" id="nav-register-section">
+                    <a class="nav-link" href="/users/registration">Register</a>
+                </li>
                 <li class="nav-item" id="nav-logout-section" style="display: none;">
                     <button onclick="logout()" class="btn btn-outline-light btn-sm">Logout</button>
                 </li>
@@ -87,7 +90,7 @@
         <p class="lead mb-5">Manage tournaments, book tickets and follow your favorite teams</p>
         <div class="d-flex justify-content-center gap-3">
             <a href="#tournaments" class="btn btn-light btn-lg">Explore Tournaments</a>
-            <a href="/users/registration" class="btn btn-outline-light btn-lg">Register</a>
+            <a id="menu-login-btn" href="/users/login" class="btn btn-outline-light btn-lg">Login</a>
         </div>
     </div>
 </section>
@@ -178,12 +181,20 @@
         // Show role-specific access
         if (user.role === 'ADMIN') {
             document.getElementById('admin-access').style.display = 'block';
+            document.getElementById('nav-register-section').style.display = 'none'
+            document.getElementById('menu-login-btn').style.display = 'none'
         } else if (user.role === 'COACH') {
             document.getElementById('coach-access').style.display = 'block';
+            document.getElementById('nav-register-section').style.display = 'none'
+            document.getElementById('menu-login-btn').style.display = 'none'
         } else if (user.role === 'REFEREE') {
             document.getElementById('quick-access-section').style.display = 'none';
+            document.getElementById('nav-register-section').style.display = 'none'
+            document.getElementById('menu-login-btn').style.display = 'none'
         } else if (user.role === 'VIEWER') {
             document.getElementById('viewer-access').style.display = 'block';
+            document.getElementById('nav-register-section').style.display = 'none'
+            document.getElementById('menu-login-btn').style.display = 'none'
         }
     }
 

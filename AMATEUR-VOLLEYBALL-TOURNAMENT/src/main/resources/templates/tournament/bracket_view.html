@@ -213,7 +213,10 @@
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <h2 id="tournament-name" class="mb-2 fw-bold">Tournament Bracket</h2>
-                <p id="tournament-info" class="mb-0 opacity-75"></p>
+                <p id="tournament-info" class="mb-0 opacity-75">
+                    <span th:text="${tournament.teams != null ? tournament.teams.size() : 0}">0</span> Teams •
+                    <span th:text="${tournament.matches != null ? tournament.matches.size() : 0}">0</span> Total Matches
+                </p>
             </div>
             <div>
                 <a href="#" onclick="goBack()" class="btn btn-light">
@@ -332,10 +335,6 @@
     function renderBracket(tournament) {
         // Update header
         document.getElementById('tournament-name').textContent = tournament.tournamentName;
-        const matchesCount = tournament.matches?.length || 0;
-        const teamsCount = tournament.teams?.length || 0;
-        document.getElementById('tournament-info').textContent =
-            `${teamsCount} teams • ${matchesCount} total matches`;
 
         // Group matches by stage
         const matchesByStage = {};

@@ -89,7 +89,7 @@ class TournamentServiceImpl implements TournamentService {
                             e.getTournamentId(),
                             e.getTournamentName(),
                             matchDTOS,
-                            new ArrayList<>()
+                            getTeams(e.getTournamentId())
                     );
                 })
                 .toList();
