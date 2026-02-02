@@ -337,8 +337,8 @@
                     </div>
 
                     <!-- Action Button -->
-                    <div class="text-center mt-3">
-                        <!-- Show edit button only if this referee is assigned to this match -->
+                    <div class="text-center mt-3 action-area">
+                        <!-- Edit Button (Visible only if active & assigned) -->
                         <button class="btn btn-warning btn-sm fw-bold shadow-sm referee-edit-btn"
                                 th:attr="data-match-id=${match.matchId},
                                         data-team-a=${match.teamA},
@@ -349,12 +349,17 @@
                                         data-winner=${match.winner}"
                                 onclick="openScoreModal(this)">
                             <i class="bi bi-pencil-square me-1"></i>
-                            <span th:text="${match.winner != null ? 'Update Score' : 'Enter Score'}">Enter Score</span>
+                            <span>Enter Score</span>
                         </button>
 
-                        <!-- Show message if not assigned to this match -->
+                        <!-- Not My Match Badge -->
                         <span class="not-my-match-badge d-none">
                             <i class="fas fa-lock me-1"></i>Not your match
+                        </span>
+
+                        <!-- Match Finalized Badge (New) -->
+                        <span class="match-finalized-badge d-none badge bg-success p-2 rounded-pill">
+                            <i class="fas fa-check-circle me-1"></i>Match Finalized
                         </span>
                     </div>
 
@@ -557,29 +562,40 @@
      */
     function checkRefereePermissions() {
         const refereeFullName = `${currentUser.surname} ${currentUser.username}`;
-
-        // Get all edit buttons
         const editButtons = document.querySelectorAll('.referee-edit-btn');
 
         editButtons.forEach(button => {
             const matchReferee = button.getAttribute('data-referee');
             const matchWinner = button.getAttribute('data-winner');
-            console.log("Match Referee: " + matchReferee);
-            const notMyMatchBadge = button.nextElementSibling;
 
-            // Check if this referee is assigned to this match
-            if (matchReferee === null || matchReferee === '' || matchReferee !== refereeFullName || matchWinner !== null) {
-                // Not assigned to this match - disable button and show message
-                button.classList.add('d-none');
-                if (notMyMatchBadge) {
-                    notMyMatchBadge.classList.remove('d-none');
-                }
+            // Find the badges relative to the button
+            const container = button.closest('.action-area');
+            const notMyMatchBadge = container.querySelector('.not-my-match-badge');
+            const finalizedBadge = container.querySelector('.match-finalized-badge');
+            const matchItem = button.closest('.match-item');
 
-                // Also gray out the entire match item
-                const matchItem = button.closest('.match-item');
-                if (matchItem) {
-                    matchItem.classList.add('disabled');
+            // 1. Reset all states (Hide all, disable card)
+            button.classList.add('d-none');
+            notMyMatchBadge.classList.add('d-none');
+            finalizedBadge.classList.add('d-none');
+            matchItem.classList.add('disabled'); // Default to greyed out
+
+            // 2. Apply Logic
+            if (matchReferee === refereeFullName) {
+                // It IS my match
+                if (matchWinner && matchWinner !== '' && matchWinner !== 'null') {
+                    // Case A: My Match, but Finished -> Show Green Badge
+                    finalizedBadge.classList.remove('d-none');
+                    // Keep card disabled (read-only)
+                } else {
+                    // Case B: My Match, Active -> Show Button
+                    button.classList.remove('d-none');
+                    matchItem.classList.remove('disabled'); // Enable card (color returns)
                 }
+            } else {
+                // Case C: Not my match -> Show Grey Badge
+                notMyMatchBadge.classList.remove('d-none');
+                // Keep card disabled
             }
         });
     }

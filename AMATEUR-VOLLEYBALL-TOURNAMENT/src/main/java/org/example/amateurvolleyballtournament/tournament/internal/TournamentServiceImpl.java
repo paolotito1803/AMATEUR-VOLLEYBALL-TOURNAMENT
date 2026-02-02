@@ -166,7 +166,7 @@ class TournamentServiceImpl implements TournamentService {
 
     @Override
     public Optional<MatchDTO> getMatchInformation(String matchId) {
-        return getMatchDTO(matchId);
+        return tournamentPersistence.findMatch(matchId).map(this::toMatchDTO);
     }
 
     @Override
@@ -184,9 +184,9 @@ class TournamentServiceImpl implements TournamentService {
             throw new IllegalStateException("Match with id " + matchId + " does not exist");
         }
 
-        String nextMatchId = tournamentPersistence.getNextMatch(matchId).orElseThrow(()  -> new IllegalStateException("Next match for match " + matchId + " does not exist"));
-
-        return getMatchDTO(nextMatchId);
+        return tournamentPersistence.getNextMatch(matchId)
+                .flatMap(tournamentPersistence::findMatch)
+                .map(this::toMatchDTO);
     }
 
     private Optional<MatchDTO> getMatchDTO(String nextMatchId) {

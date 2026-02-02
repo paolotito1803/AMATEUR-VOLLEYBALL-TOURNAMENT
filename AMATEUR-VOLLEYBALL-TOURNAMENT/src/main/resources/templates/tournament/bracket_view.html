@@ -298,7 +298,13 @@
     function goBack() {
         const pathParts = window.location.pathname.split('/');
         const tournamentId = pathParts[pathParts.length - 2];
-        window.location.href = `/tournament/${tournamentId}/view`;
+
+        // Check the user role
+        if (user && user.role === 'REFEREE') {
+            window.location.href = `/tournament/${tournamentId}/referee_view`;
+        } else {
+            window.location.href = `/tournament/${tournamentId}/view`;
+        }
     }
 
     // Get tournament ID from URL

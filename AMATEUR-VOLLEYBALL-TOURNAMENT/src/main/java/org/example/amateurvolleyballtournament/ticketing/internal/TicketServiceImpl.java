@@ -56,7 +56,10 @@ class TicketServiceImpl implements TicketService {
 
     @Override
     public List<TicketDTO> getAllTicketsByUserId(String userId) {
-        return db.findTicketsByUserId(userId).stream().map(this::toDTO).toList();
+        return db.findTicketsByUserId(userId).stream()
+                .map(this::toDTO)
+                .flatMap(Optional::stream)
+                .toList();
     }
 
     @Override
@@ -73,9 +76,19 @@ class TicketServiceImpl implements TicketService {
         db.deleteAll();
     }
 
-    private TicketDTO toDTO(TicketEntity entity) {
-        MatchDTO m = tournamentService.getMatchInformation(entity.getMatch())
-                .orElseThrow(() -> new IllegalArgumentException("Match not found"));
-        return new TicketDTO(entity.getId(), entity.getNumSeat(), m, entity.getUserId());
+    private Optional<TicketDTO> toDTO(TicketEntity entity) {
+        try {
+            Optional<MatchDTO> matchOpt = tournamentService.getMatchInformation(entity.getMatch());
+
+            // If the tournament/match was deleted but the ticket remains, ignore the ticket
+            if (matchOpt.isEmpty()) {
+                return Optional.empty();
+            }
+
+            return Optional.of(new TicketDTO(entity.getId(), entity.getNumSeat(), matchOpt.get(), entity.getUserId()));
+        }
+        catch (Exception e) {
+            return Optional.empty();
+        }
     }
 }

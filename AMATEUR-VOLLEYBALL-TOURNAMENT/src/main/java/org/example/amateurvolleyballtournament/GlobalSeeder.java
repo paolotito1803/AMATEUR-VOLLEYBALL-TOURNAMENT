@@ -150,7 +150,7 @@ public class GlobalSeeder implements CommandLineRunner {
                         .orElse(null);
 
                 if (m1 != null) {
-                    tournamentService.updateMatchReferee(m1.matchId(), "id_ref_1");
+                    tournamentService.updateMatchReferee(m1.matchId(), "Doe John");
                     tournamentService.updateMatchDate(m1.matchId(), LocalDateTime.now().plusDays(1).withHour(18).withMinute(0));
 
                     // Assign Stadium

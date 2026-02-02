@@ -77,4 +77,19 @@ class TeamRestController {
             return ResponseEntity.badRequest().body("Error updating stadium: " + e.getMessage());
         }
     }
+
+    @PutMapping("/{coachId}/players/{playerNumber}")
+    public ResponseEntity<String> updatePlayer(@PathVariable String coachId,
+                                               @PathVariable int playerNumber,
+                                               @RequestBody PlayerDTO player) {
+        teamService.updatePlayer(coachId, playerNumber, player);
+        return ResponseEntity.ok("Player updated successfully");
+    }
+
+    @DeleteMapping("/{coachId}/players/{playerNumber}")
+    public ResponseEntity<String> removePlayer(@PathVariable String coachId,
+                                               @PathVariable int playerNumber) {
+        teamService.removePlayer(coachId, playerNumber);
+        return ResponseEntity.ok("Player removed successfully");
+    }
 }
