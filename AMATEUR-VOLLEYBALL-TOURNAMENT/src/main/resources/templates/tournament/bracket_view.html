@@ -401,11 +401,6 @@
         column.appendChild(header);
 
         matches.forEach(match => {
-            // Skip BYE matches completely
-            if (match.teamA === 'BYE' || match.teamB === 'BYE') {
-                return;
-            }
-
             const matchCard = createMatchCard(match);
             column.appendChild(matchCard);
         });
