@@ -4,7 +4,7 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-.env
+# .env # commmented out to provide .env file out of the box for demo purposes
 
 ### STS ###
 .apt_generated
