@@ -4,11 +4,6 @@
 1. **Docker Desktop** (Running)
 2. **Ports Available:** 8080 (Application & Frontend), 5433 (PostgreSQL Database)
 
-## Configuration (First Run)
-This project uses a `.env` file to manage secrets (Database credentials, JWT keys) securely.
-The `.env.example` file in the root directory shows the structure and secrets that should be present in the .env file to add in the root folder.
-**Note:** The project will not start if the `.env` file is missing.
-
 ## Installation & Setup
 1.  **Clone the repository:**
 
